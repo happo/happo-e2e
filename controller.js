@@ -190,6 +190,12 @@ Docs:
     htmlElementAttrs,
     bodyElementAttrs,
   }) {
+    if (!component) {
+      throw new Error('Missing `component`');
+    }
+    if (!variant) {
+      throw new Error('Missing `variant`');
+    }
     this.snapshotAssetUrls.push(...assetUrls);
     const targets = this.handleDynamicTargets(rawTargets);
     this.snapshots.push({
