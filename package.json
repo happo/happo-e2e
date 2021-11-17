@@ -10,9 +10,12 @@
     "happo-e2e": "./bin/happo-e2e.js"
   },
   "scripts": {
-    "lint": "eslint ."
+    "prepare": "yarn build",
+    "lint": "eslint .",
+    "build": "browserify browser-main.js > browser.build.js"
   },
   "devDependencies": {
+    "browserify": "^17.0.0",
     "eslint": "^8.2.0",
     "happo.io": "^6.8.0"
   },
