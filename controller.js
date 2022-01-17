@@ -150,7 +150,7 @@ Docs:
         globalCSS = globalCSS.split(url.url).join(url.name);
         this.snapshots.forEach(snapshot => {
           snapshot.html = snapshot.html.split(url.url).join(url.name);
-          if (/&/.test.snapshot.url) {
+          if (/&/.test(snapshot.url)) {
             // When URL has an ampersand, we need to make sure the html wasn't
             // escaped so we replace again, this time with "&" replaced by
             // "&amp;"
