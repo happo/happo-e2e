@@ -33,6 +33,23 @@ function normalize(url, baseUrl) {
   return url;
 }
 
+function getFileSuffixFromMimeType(mime) {
+  if (mime === 'image/svg+xml') {
+    return '.svg';
+  }
+
+  if (mime === 'image/vnd.microsoft.icon') {
+    return '.ico';
+  }
+
+  const match = mime.match(/^image\/(.+)$/);
+  if (!match) {
+    return '';
+  }
+
+  return `.${match[1]}`;
+}
+
 module.exports = function createAssetPackage(urls) {
   if (HAPPO_DEBUG) {
     console.log(`[HAPPO] Creating asset package from urls`, urls);
@@ -69,9 +86,11 @@ module.exports = function createAssetPackage(urls) {
       if (!HAPPO_DOWNLOAD_ALL && isExternalUrl) {
         return;
       }
-      const name = isExternalUrl
-        ? `_external/${crypto.createHash('md5').update(url).digest('hex')}`
-        : normalize(stripQueryParams(url), baseUrl);
+      const isDynamic = url.indexOf('?') > 0;
+      let name =
+        isExternalUrl || isDynamic
+          ? `_external/${crypto.createHash('md5').update(url).digest('hex')}`
+          : normalize(stripQueryParams(url), baseUrl);
       if (name.startsWith('#') || name === '') {
         return;
       }
@@ -102,6 +121,12 @@ module.exports = function createAssetPackage(urls) {
               `[HAPPO] Failed to fetch url ${fetchUrl} — ${fetchRes.statusText}`,
             );
             return;
+          }
+          if (isDynamic || isExternalUrl) {
+            // Add a file suffix so that svg images work
+            name = `${name}${getFileSuffixFromMimeType(
+              fetchRes.headers.get('content-type'),
+            )}`;
           }
           archive.append(fetchRes.body, {
             name,
