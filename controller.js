@@ -32,6 +32,10 @@ function getUniqueUrls(urls) {
   return urls;
 }
 
+function ampersands(string) {
+  return string.replace(/&/g, '&amp;');
+}
+
 async function downloadCSSContent(blocks) {
   const promises = blocks.map(async block => {
     if (block.href) {
@@ -146,6 +150,14 @@ Docs:
         globalCSS = globalCSS.split(url.url).join(url.name);
         this.snapshots.forEach(snapshot => {
           snapshot.html = snapshot.html.split(url.url).join(url.name);
+          if (/&/.test.snapshot.url) {
+            // When URL has an ampersand, we need to make sure the html wasn't
+            // escaped so we replace again, this time with "&" replaced by
+            // "&amp;"
+            snapshot.html = snapshot.html
+              .split(ampersands(url.url))
+              .join(url.name);
+          }
         });
       }
     }
