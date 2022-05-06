@@ -24,6 +24,12 @@ const envKeys = [
   'TRAVIS_PULL_REQUEST_SHA',
   'TRAVIS_REPO_SLUG',
   'TRAVIS_COMMIT_RANGE',
+  'BUILD_SOURCEVERSION',
+  'BUILD_REPOSITORY_URI',
+  'SYSTEM_PULLREQUEST_PULLREQUESTID',
+  'SYSTEM_PULLREQUEST_SOURCEBRANCH',
+  'SYSTEM_PULLREQUEST_TARGETBRANCH',
+  'SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI',
 ];
 
 function resolveLink(env) {
@@ -41,6 +47,10 @@ function resolveLink(env) {
     CIRCLE_SHA1,
     GITHUB_EVENT_PATH,
     GITHUB_SHA,
+    SYSTEM_PULLREQUEST_PULLREQUESTID,
+    SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI,
+    BUILD_REPOSITORY_URI,
+    BUILD_SOURCEVERSION,
   } = env;
 
   if (HAPPO_CHANGE_URL) {
@@ -67,6 +77,23 @@ function resolveLink(env) {
     if (GITHUB_SHA && ghEvent.repository) {
       return `${ghEvent.repository.html_url}/commit/${GITHUB_SHA}`;
     }
+  }
+
+  if (
+    SYSTEM_PULLREQUEST_PULLREQUESTID &&
+    SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI
+  ) {
+    return `${SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI}/pullrequest/${SYSTEM_PULLREQUEST_PULLREQUESTID}`.replace(
+      /[^/]+@/,
+      '',
+    );
+  }
+
+  if (BUILD_REPOSITORY_URI && BUILD_SOURCEVERSION) {
+    return `${BUILD_REPOSITORY_URI}/commit/${BUILD_SOURCEVERSION}`.replace(
+      /[^/]+@/,
+      '',
+    );
   }
 
   const githubBase = HAPPO_GITHUB_BASE || GITHUB_BASE || 'https://github.com';
@@ -112,6 +139,7 @@ function resolveBeforeSha(env, afterSha) {
     HAPPO_BASE_BRANCH,
     TRAVIS_COMMIT_RANGE,
     GITHUB_EVENT_PATH,
+    SYSTEM_PULLREQUEST_TARGETBRANCH,
 
     // legacy
     BASE_BRANCH,
@@ -144,7 +172,16 @@ function resolveBeforeSha(env, afterSha) {
     return first;
   }
 
-  const baseBranch = HAPPO_BASE_BRANCH || BASE_BRANCH || 'origin/master';
+  let baseAzureBranch;
+  if (SYSTEM_PULLREQUEST_TARGETBRANCH) {
+    baseAzureBranch = [
+      'origin',
+      SYSTEM_PULLREQUEST_TARGETBRANCH.split('/').reverse()[0],
+    ].join('/');
+  }
+
+  const baseBranch =
+    HAPPO_BASE_BRANCH || BASE_BRANCH || baseAzureBranch || 'origin/master';
   const res = spawnSync('git', ['merge-base', baseBranch, afterSha], {
     encoding: 'utf-8',
   });
@@ -166,6 +203,8 @@ function resolveAfterSha(env) {
     TRAVIS_COMMIT,
     GITHUB_EVENT_PATH,
     GITHUB_SHA,
+    BUILD_SOURCEVERSION,
+    SYSTEM_PULLREQUEST_SOURCEBRANCH,
   } = env;
   const sha =
     HAPPO_CURRENT_SHA ||
@@ -175,6 +214,21 @@ function resolveAfterSha(env) {
     TRAVIS_COMMIT;
   if (sha) {
     return sha;
+  }
+  if (SYSTEM_PULLREQUEST_SOURCEBRANCH) {
+    // azure pull request
+    const rawBranchName =
+      SYSTEM_PULLREQUEST_SOURCEBRANCH.split('/').reverse()[0];
+    const res = spawnSync('git', ['rev-parse', `origin/${rawBranchName}`], {
+      encoding: 'utf-8',
+    });
+    if (res.status === 0) {
+      return res.stdout.split('\n')[0];
+    }
+  }
+  if (BUILD_SOURCEVERSION) {
+    // azure master job
+    return BUILD_SOURCEVERSION;
   }
   if (GITHUB_EVENT_PATH) {
     const ghEvent = require(GITHUB_EVENT_PATH);
