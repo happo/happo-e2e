@@ -9,6 +9,7 @@
   "bin": {
     "happo-e2e": "./bin/happo-e2e.js"
   },
+
   "scripts": {
     "prepare": "yarn build",
     "lint": "eslint .",
