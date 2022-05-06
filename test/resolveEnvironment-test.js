@@ -55,13 +55,13 @@ function testAzureEnv() {
       'https://trotzig@dev.azure.com/trotzig/_git/happo-demo-azure-full-page',
     SYSTEM_PULLREQUEST_PULLREQUESTID: '99',
     SYSTEM_PULLREQUEST_TARGETBRANCH: 'refs/head/master',
-    SYSTEM_PULLREQUEST_SOURCEBRANCH: 'refs/head/dynamic-svg-images',
+    SYSTEM_PULLREQUEST_SOURCEBRANCH: 'refs/head/dummy-branch',
     SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI:
       'https://trotzig@dev.azure.com/trotzig/_git/happo-demo-azure-full-page',
   };
   let result = resolveEnvironment(azureEnv);
-  assert.equal(result.afterSha, '8d18e231354cb03cf4ea0fa51c58aa56628346c6');
-  assert.equal(result.beforeSha, '8d18e231354cb03cf4ea0fa51c58aa56628346c6');
+  assert.equal(result.afterSha, '56abe22357deecf8be0c54325793789c5907b83f');
+  assert.equal(result.beforeSha, '25826448f15ebcb939804ca769a00ee1df08e10d');
   assert.equal(
     result.link,
     'https://dev.azure.com/trotzig/_git/happo-demo-azure-full-page/pullrequest/99',
