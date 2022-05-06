@@ -48,6 +48,52 @@ function testCircleCIEnv() {
   assert.ok(result.message !== undefined);
 }
 
+function testAzureEnv() {
+  const azureEnv = {
+    BUILD_SOURCEVERSION: '25826448f15ebcb939804ca769a00ee1df08e10d',
+    BUILD_REPOSITORY_URI:
+      'https://trotzig@dev.azure.com/trotzig/_git/happo-demo-azure-full-page',
+    SYSTEM_PULLREQUEST_PULLREQUESTID: '99',
+    SYSTEM_PULLREQUEST_TARGETBRANCH: 'refs/head/master',
+    SYSTEM_PULLREQUEST_SOURCEBRANCH: 'refs/head/dynamic-svg-images',
+    SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI:
+      'https://trotzig@dev.azure.com/trotzig/_git/happo-demo-azure-full-page',
+  };
+  let result = resolveEnvironment(azureEnv);
+  assert.equal(result.afterSha, '8d18e231354cb03cf4ea0fa51c58aa56628346c6');
+  assert.equal(result.beforeSha, '8d18e231354cb03cf4ea0fa51c58aa56628346c6');
+  assert.equal(
+    result.link,
+    'https://dev.azure.com/trotzig/_git/happo-demo-azure-full-page/pullrequest/99',
+  );
+  assert.ok(result.message !== undefined);
+
+  // Try with a non-pr env
+  result = resolveEnvironment({
+    ...azureEnv,
+    SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI: undefined,
+    SYSTEM_PULLREQUEST_SOURCEBRANCH: undefined,
+    SYSTEM_PULLREQUEST_TARGETBRANCH: undefined,
+    SYSTEM_PULLREQUEST_PULLREQUESTID: undefined,
+  });
+
+  assert.equal(result.afterSha, '25826448f15ebcb939804ca769a00ee1df08e10d');
+  assert.equal(result.beforeSha, '25826448f15ebcb939804ca769a00ee1df08e10d');
+  assert.equal(
+    result.link,
+    'https://dev.azure.com/trotzig/_git/happo-demo-azure-full-page/commit/25826448f15ebcb939804ca769a00ee1df08e10d',
+  );
+  assert.ok(result.message !== undefined);
+
+  // assert.equal(result.beforeSha, undefined);
+  // assert.equal(result.afterSha, 'abcdef');
+  // assert.equal(
+  //   result.link,
+  //   'https://github.com/happo/happo-view/commit/abcdef',
+  // );
+  // assert.ok(result.message !== undefined);
+}
+
 function testGithubActionsEnvironment() {
   const githubEnv = {
     GITHUB_SHA: 'ccddffddccffdd',
@@ -184,6 +230,7 @@ function runTest() {
   testDevEnv();
   testCircleCIEnv();
   testTravisEnv();
+  testAzureEnv();
   testHappoEnv();
 }
 runTest();
