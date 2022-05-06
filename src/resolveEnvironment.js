@@ -174,7 +174,10 @@ function resolveBeforeSha(env, afterSha) {
 
   let baseAzureBranch;
   if (SYSTEM_PULLREQUEST_TARGETBRANCH) {
-    baseAzureBranch = SYSTEM_PULLREQUEST_TARGETBRANCH.split('/').reverse()[0];
+    baseAzureBranch = [
+      'origin',
+      SYSTEM_PULLREQUEST_TARGETBRANCH.split('/').reverse()[0],
+    ].join('/');
   }
 
   const baseBranch =
