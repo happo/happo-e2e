@@ -3,6 +3,7 @@ const fs = require('fs');
 
 const mkdirp = require('mkdirp');
 const nodeFetch = require('node-fetch');
+const imageSize = require('image-size')
 
 const { RemoteBrowserTarget } = require('happo.io');
 const createAssetPackage = require('./src/createAssetPackage');
@@ -232,17 +233,27 @@ Docs:
     variant: rawVariant,
     targets,
     target,
-    path,
     width,
     height,
+
+    // One of path, buffer is required
+    path,
+    buffer,
   }) {
     const variant = this.dedupeVariant(component, rawVariant);
+
+    if (!width && !height && buffer) {
+      const dimensions = imageSize(buffer)
+      width = dimensions.width;
+      height = dimensions.height;
+    }
+
     this.localSnapshots.push({
       component,
       variant,
       targets,
       target,
-      url: await this.uploadImage(path),
+      url: await this.uploadImage(path || buffer),
       width,
       height,
     });
@@ -333,11 +344,14 @@ Docs:
     }
     return result;
   }
-  async uploadImage(pathToFile) {
+  async uploadImage(pathOrBuffer) {
+    const pathToFile = Buffer.isBuffer(pathOrBuffer) ? undefined : pathOrBuffer;
     if (HAPPO_DEBUG) {
-      console.log(`[HAPPO] Uploading image: ${pathToFile}`);
+      console.log(`[HAPPO] Uploading image ${pathToFile || ''}`);
     }
-    const buffer = await fs.promises.readFile(pathToFile);
+    const buffer = pathToFile
+      ? await fs.promises.readFile(pathToFile)
+      : pathOrBuffer;
     const hash = crypto.createHash('md5').update(buffer).digest('hex');
 
     const uploadUrlResult = await makeRequest(
