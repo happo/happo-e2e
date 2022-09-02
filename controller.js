@@ -3,7 +3,7 @@ const fs = require('fs');
 
 const mkdirp = require('mkdirp');
 const nodeFetch = require('node-fetch');
-const imageSize = require('image-size')
+const imageSize = require('image-size');
 
 const { RemoteBrowserTarget } = require('happo.io');
 const createAssetPackage = require('./src/createAssetPackage');
@@ -170,6 +170,15 @@ Docs:
       const snapshotsForTarget = this.snapshots.filter(
         ({ targets }) => !targets || targets.includes(name),
       );
+      if (!snapshotsForTarget.length) {
+        if (HAPPO_DEBUG) {
+          console.log(
+            `[HAPPO] No snapshots recorded for target=${name}. Skipping.`,
+          );
+        }
+        continue;
+      }
+
       const requestIds = await this.happoConfig.targets[name].execute({
         targetName: name,
         asyncResults: true,
@@ -243,7 +252,7 @@ Docs:
     const variant = this.dedupeVariant(component, rawVariant);
 
     if (!width && !height && buffer) {
-      const dimensions = imageSize(buffer)
+      const dimensions = imageSize(buffer);
       width = dimensions.width;
       height = dimensions.height;
     }
