@@ -114,8 +114,11 @@ function resolveLink(env) {
 }
 
 function resolveMessage(env) {
-  const { GITHUB_EVENT_PATH } = env;
+  const { GITHUB_EVENT_PATH, HAPPO_MESSAGE } = env;
 
+  if (HAPPO_MESSAGE) {
+    return HAPPO_MESSAGE;
+  }
   if (GITHUB_EVENT_PATH) {
     const ghEvent = require(GITHUB_EVENT_PATH);
     if (ghEvent.pull_request) {

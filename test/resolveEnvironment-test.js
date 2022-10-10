@@ -205,12 +205,13 @@ function testHappoEnv() {
     CURRENT_SHA: 'foobar',
     PREVIOUS_SHA: 'barfo',
     CHANGE_URL: 'url://link',
+    HAPPO_MESSAGE: 'This is a change',
   });
 
   assert.equal(result.beforeSha, 'barfo');
   assert.equal(result.afterSha, 'foobar');
   assert.equal(result.link, 'url://link');
-  assert.ok(result.message !== undefined);
+  assert.equal(result.message, 'This is a change');
 
   // Try overriding base branch
   result = resolveEnvironment({
