@@ -225,10 +225,20 @@ function takeDOMSnapshot({
   };
 }
 takeDOMSnapshot.init = function injectBaseUrlToStyleElements(win) {
-  const styleElements = win.document.querySelectorAll(CSS_ELEMENTS_SELECTOR);
-  const baseUrl = getBaseUrlWithPath(win.document);
-  for (const element of styleElements) {
-    element.baseUrl = baseUrl;
+  try {
+    const styleElements = win.document.querySelectorAll(CSS_ELEMENTS_SELECTOR);
+    const baseUrl = getBaseUrlWithPath(win.document);
+    for (const element of styleElements) {
+      element.baseUrl = baseUrl;
+    }
+  } catch (e) {
+    if (/Blocked a frame with origin/.test(e.message)) {
+      // If you navigate to a different domain during your tests, we won't be
+      // able to query the document for style elements because of cross-origin
+      // security. We can simply ignore this error and move on anyway.
+      return;
+    }
+    throw e;
   }
 };
 
