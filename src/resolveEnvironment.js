@@ -135,9 +135,41 @@ function resolveMessage(env) {
   return res.stdout.split('\n')[0];
 }
 
+function resolveShaFromTagMatcher(tagMatcher) {
+  const res = spawnSync(
+    'git',
+    ['tag', '--list', tagMatcher, '--sort', 'refname', '--no-contains'],
+    {
+      encoding: 'utf-8',
+    },
+  );
+  if (res.status !== 0) {
+    throw new Error(
+      `Failed to list git tags when matching against HAPPO_BEFORE_SHA_TAG_MATCHER. Error: ${res.stderr}`,
+    );
+  }
+  const rawAllTags = res.stdout.trim();
+  if (!rawAllTags.length) {
+    return undefined;
+  }
+  const allTags = rawAllTags.split('\n');
+  const tag = allTags[allTags.length - 1];
+
+  const commitRes = spawnSync('git', ['rev-list', '-n', '1', tag], {
+    encoding: 'utf-8',
+  });
+  if (commitRes.status !== 0) {
+    throw new Error(
+      `Failed to resolve commit sha from tag "${tag}". Error: ${res.stderr}`,
+    );
+  }
+  return commitRes.stdout.trim();
+}
+
 function resolveBeforeSha(env, afterSha) {
   const {
     HAPPO_PREVIOUS_SHA,
+    HAPPO_BEFORE_SHA_TAG_MATCHER,
     PREVIOUS_SHA,
     HAPPO_BASE_BRANCH,
     TRAVIS_COMMIT_RANGE,
@@ -154,6 +186,13 @@ function resolveBeforeSha(env, afterSha) {
 
   if (PREVIOUS_SHA) {
     return PREVIOUS_SHA;
+  }
+
+  if (HAPPO_BEFORE_SHA_TAG_MATCHER) {
+    const resolvedSha = resolveShaFromTagMatcher(HAPPO_BEFORE_SHA_TAG_MATCHER);
+    if (resolvedSha) {
+      return resolvedSha;
+    }
   }
 
   if (/^dev-/.test(afterSha)) {

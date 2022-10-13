@@ -94,6 +94,28 @@ function testAzureEnv() {
   // assert.ok(result.message !== undefined);
 }
 
+function testTagMatchingEnv() {
+  const azureEnv = {
+    BUILD_SOURCEVERSION: '25826448f15ebcb939804ca769a00ee1df08e10d',
+    BUILD_REPOSITORY_URI:
+      'https://trotzig@dev.azure.com/trotzig/_git/happo-demo-azure-full-page',
+    HAPPO_BEFORE_SHA_TAG_MATCHER: 'happo-*',
+  };
+  let result = resolveEnvironment(azureEnv);
+  assert.equal(result.afterSha, '25826448f15ebcb939804ca769a00ee1df08e10d');
+  assert.equal(result.beforeSha, 'dff9416bd579847b94c72682fa1a611f372d23e4');
+
+  // Try with a matcher that doesn't match anything
+  result = resolveEnvironment({
+    ...azureEnv,
+    HAPPO_BEFORE_SHA_TAG_MATCHER: 'happo-dobedoo-*',
+  });
+
+  assert.equal(result.afterSha, '25826448f15ebcb939804ca769a00ee1df08e10d');
+  assert.equal(result.beforeSha, '25826448f15ebcb939804ca769a00ee1df08e10d');
+
+}
+
 function testGithubActionsEnvironment() {
   const githubEnv = {
     GITHUB_SHA: 'ccddffddccffdd',
@@ -233,6 +255,7 @@ function runTest() {
   testTravisEnv();
   testAzureEnv();
   testHappoEnv();
+  testTagMatchingEnv();
 }
 runTest();
 console.log('All tests passed');
