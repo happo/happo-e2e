@@ -47,7 +47,7 @@ async function downloadCSSContent(blocks) {
       const res = await proxiedFetch(absUrl);
       if (!res.ok) {
         console.warn(
-          `[HAPPO] Failed to fetch CSS file from ${block.href}. This might mean styles are missing in your Happo screenshots`,
+          `[HAPPO] Failed to fetch CSS file from ${block.href} (using base URL ${block.baseUrl}). This might mean styles are missing in your Happo screenshots`,
         );
         return;
       }
