@@ -6,20 +6,15 @@ const findCSSAssetUrls = require('./src/findCSSAssetUrls');
 const CSS_ELEMENTS_SELECTOR = 'style,link[rel="stylesheet"][href]';
 const COMMENT_PATTERN = /^\/\*.+\*\/$/;
 
-function getBaseUrlWithPath(doc) {
-  return doc.location.href.slice(0, doc.location.href.lastIndexOf('/') + 1);
-}
-
 function extractCSSBlocks(doc) {
   const blocks = [];
   const styleElements = doc.querySelectorAll(CSS_ELEMENTS_SELECTOR);
-  const baseUrl = getBaseUrlWithPath(doc);
 
   styleElements.forEach(element => {
     if (element.tagName === 'LINK') {
       // <link href>
       const href = element.getAttribute('href');
-      blocks.push({ key: href, href, baseUrl: element.baseUrl || baseUrl });
+      blocks.push({ key: href, href, baseUrl: element.baseURI });
     } else {
       // <style>
       const lines = Array.from(element.sheet.cssRules).map(r => r.cssText);
@@ -32,7 +27,7 @@ function extractCSSBlocks(doc) {
 
       // Create a hash so that we can dedupe equal styles
       const key = md5(content).toString();
-      blocks.push({ content, key, baseUrl: element.baseUrl || baseUrl });
+      blocks.push({ content, key, baseUrl: element.baseURI });
     }
   });
   return blocks;
@@ -45,13 +40,12 @@ function defaultHandleBase64Image({ base64Url, element }) {
 
 function getElementAssetUrls(
   element,
-  { doc, handleBase64Image = defaultHandleBase64Image },
+  { handleBase64Image = defaultHandleBase64Image },
 ) {
   const allUrls = [];
   const allElements = [element].concat(
     Array.from(element.querySelectorAll('*')),
   );
-  const baseUrl = getBaseUrlWithPath(doc);
   allElements.forEach(element => {
     if (element.tagName === 'SCRIPT') {
       // skip script elements
@@ -65,13 +59,23 @@ function getElementAssetUrls(
       handleBase64Image({ src, base64Url, element });
     }
     if (src) {
-      allUrls.push({ url: src, baseUrl });
+      allUrls.push({ url: src, baseUrl: element.baseURI });
     }
     if (srcset) {
-      allUrls.push(...parseSrcset(srcset).map(p => ({ url: p.url, baseUrl })));
+      allUrls.push(
+        ...parseSrcset(srcset).map(p => ({
+          url: p.url,
+          baseUrl: element.baseURI,
+        })),
+      );
     }
     if (style) {
-      allUrls.push(...findCSSAssetUrls(style).map(url => ({ url, baseUrl })));
+      allUrls.push(
+        ...findCSSAssetUrls(style).map(url => ({
+          url,
+          baseUrl: element.baseURI,
+        })),
+      );
     }
   });
   return allUrls.filter(({ url }) => !url.startsWith('data:'));
@@ -224,22 +228,10 @@ function takeDOMSnapshot({
     bodyElementAttrs,
   };
 }
-takeDOMSnapshot.init = function injectBaseUrlToStyleElements(win) {
-  try {
-    const styleElements = win.document.querySelectorAll(CSS_ELEMENTS_SELECTOR);
-    const baseUrl = getBaseUrlWithPath(win.document);
-    for (const element of styleElements) {
-      element.baseUrl = baseUrl;
-    }
-  } catch (e) {
-    if (/Blocked a frame with origin/.test(e.message)) {
-      // If you navigate to a different domain during your tests, we won't be
-      // able to query the document for style elements because of cross-origin
-      // security. We can simply ignore this error and move on anyway.
-      return;
-    }
-    throw e;
-  }
+takeDOMSnapshot.init = function noop() {
+  // There used to be some code in here to set the baseUrl of all link elements.
+  // But that's no longer needed (because Node.baseURI exists). We're keeping
+  // the function around here however to make sure we stay backwards compatible.
 };
 
 module.exports = takeDOMSnapshot;
