@@ -208,6 +208,14 @@ function takeDOMSnapshot({
     scriptEl.parentNode.removeChild(scriptEl);
   });
 
+  doc
+    .querySelectorAll('[data-happo-focus]')
+    .forEach(e => e.removeAttribute('data-happo-focus'));
+
+  if (doc.activeElement && doc.activeElement !== doc.body) {
+    doc.activeElement.setAttribute('data-happo-focus', 'true');
+  }
+
   const html = element.outerHTML;
   const assetUrls = getElementAssetUrls(element, {
     doc,
