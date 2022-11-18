@@ -128,6 +128,9 @@ module.exports = function createAssetPackage(urls) {
               fetchRes.headers.get('content-type'),
             )}`;
           }
+          // decode URI to make sure "%20" and such are converted to the right
+          // chars
+          name = decodeURI(name);
           archive.append(fetchRes.body, {
             name,
             date: FILE_CREATION_DATE,
