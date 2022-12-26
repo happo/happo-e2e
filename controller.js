@@ -145,10 +145,16 @@ Docs:
       console.log('[HAPPO] Done uploading assets package, got', assetsRes);
     }
 
-    let globalCSS = this.allCssBlocks.map(block => block.content).join('\n');
+    const globalCSS = this.allCssBlocks.map(block => ({
+      id: block.key,
+      conditional: true,
+      css: block.content,
+    }));
     for (const url of uniqueUrls) {
       if (/^\/_external\//.test(url.name) && url.name !== url.url) {
-        globalCSS = globalCSS.split(url.url).join(url.name);
+        for (const block of globalCSS) {
+          block.css = block.css.split(url.url).join(url.name);
+        }
         this.snapshots.forEach(snapshot => {
           snapshot.html = snapshot.html.split(url.url).join(url.name);
           if (/&/.test(url.url)) {
@@ -226,6 +232,7 @@ Docs:
       component,
       variant,
       targets,
+      stylesheets: cssBlocks.map(b => b.key),
       htmlElementAttrs,
       bodyElementAttrs,
     });
