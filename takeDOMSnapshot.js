@@ -216,11 +216,12 @@ function takeDOMSnapshot({
     doc.activeElement.setAttribute('data-happo-focus', 'true');
   }
 
-  const html = element.outerHTML;
   const assetUrls = getElementAssetUrls(element, {
     doc,
     handleBase64Image,
   });
+
+  const html = element.outerHTML;
   const cssBlocks = extractCSSBlocks(doc);
   const htmlElementAttrs = extractElementAttributes(doc.documentElement);
   const bodyElementAttrs = extractElementAttributes(doc.body);
