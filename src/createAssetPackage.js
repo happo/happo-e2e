@@ -82,8 +82,9 @@ module.exports = function createAssetPackage(urls) {
 
     const promises = urls.map(async item => {
       const { url, baseUrl } = item;
-      const isExternalUrl = /^https?:/.test(url || '');
-      if (!HAPPO_DOWNLOAD_ALL && isExternalUrl) {
+      const isExternalUrl = /^https?:/.test(url);
+      const isLocalhost = /\/\/(localhost|127\.0\.0\.1)(:|\/)/.test(url);
+      if (!HAPPO_DOWNLOAD_ALL && isExternalUrl && !isLocalhost) {
         return;
       }
       const isDynamic = url.indexOf('?') > 0;

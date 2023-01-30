@@ -5,7 +5,7 @@ const createAssetPackage = require('../src/createAssetPackage');
 
 const { SAVE_PACKAGE } = process.env;
 
-async function runBasicTest() {
+async function wrap(func) {
   const handler = require('serve-handler');
   const http = require('http');
 
@@ -21,13 +21,7 @@ async function runBasicTest() {
   });
 
   try {
-    const pkg = await createAssetPackage([
-      {
-        url: '/sub%20folder/countries-bg.jpeg',
-        baseUrl: 'http://localhost:3412',
-      },
-    ]);
-    assert.equal(pkg.hash, 'aed32b1cc82366d461b7755d5eb3f13a');
+    const pkg = await func();
     if (SAVE_PACKAGE) {
       fs.writeFileSync('test-package.zip', pkg.buffer);
     }
@@ -36,8 +30,35 @@ async function runBasicTest() {
   }
 }
 
+async function runBasicTest() {
+  await wrap(async () => {
+    const pkg = await createAssetPackage([
+      {
+        url: '/sub%20folder/countries-bg.jpeg',
+        baseUrl: 'http://localhost:3412',
+      },
+    ]);
+    assert.equal(pkg.hash, '558b9f58b427a127a271719fb27e0141');
+    return pkg;
+  });
+}
+
+async function runLocalhostTest() {
+  await wrap(async () => {
+    const pkg = await createAssetPackage([
+      {
+        url: 'http://localhost:3412/sub%20folder/countries-bg.jpeg',
+        baseUrl: 'http://localhost:3412',
+      },
+    ]);
+    assert.equal(pkg.hash, '4b2ca8574350a846230c60b21bc2058f');
+    return pkg;
+  });
+}
+
 async function runTest() {
   await runBasicTest();
+  await runLocalhostTest();
 }
 
 runTest()
