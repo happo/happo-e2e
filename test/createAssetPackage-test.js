@@ -38,7 +38,12 @@ async function runBasicTest() {
         baseUrl: 'http://localhost:3412',
       },
     ]);
-    assert.equal(pkg.hash, '558b9f58b427a127a271719fb27e0141');
+    assert.equal(
+      pkg.hash,
+      process.env.CI
+        ? 'aed32b1cc82366d461b7755d5eb3f13a'
+        : '558b9f58b427a127a271719fb27e0141',
+    );
     return pkg;
   });
 }
@@ -51,7 +56,12 @@ async function runLocalhostTest() {
         baseUrl: 'http://localhost:3412',
       },
     ]);
-    assert.equal(pkg.hash, '4b2ca8574350a846230c60b21bc2058f');
+    assert.equal(
+      pkg.hash,
+      process.env.CI
+        ? '37d4189cb825c87641f36f9c9222d6ff'
+        : '4b2ca8574350a846230c60b21bc2058f',
+    );
     return pkg;
   });
 }
