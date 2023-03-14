@@ -54,9 +54,29 @@ function runFocusTest() {
   `.trim());
 }
 
+function runMultiElementTest() {
+  const { JSDOM } = jsdom;
+  const dom = new JSDOM(`
+<!DOCTYPE html>
+<html>
+  <body>
+  <button>Hello</button>
+  <button>World</button>
+  </body>
+</html>
+  `);
+  const { document: doc } = dom.window;
+  const element = doc.querySelectorAll('button');
+  let snapshot = takeDOMSnapshot({ doc, element });
+  assert.equal(snapshot.html.trim(), `
+  <button>Hello</button>\n<button>World</button>
+  `.trim());
+}
+
 function runTest() {
   runBasicTest();
   runFocusTest();
+  runMultiElementTest();
 }
 
 runTest();
