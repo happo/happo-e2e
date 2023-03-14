@@ -184,53 +184,66 @@ function performDOMTransform({ doc, selector, transform, element }) {
 
 function takeDOMSnapshot({
   doc,
-  element: originalElement,
+  element: oneOrMoreElements,
   responsiveInlinedCanvases = false,
   transformDOM,
   handleBase64Image,
 } = {}) {
-  const { element, cleanup: canvasCleanup } = inlineCanvases(originalElement, {
-    doc,
-    responsiveInlinedCanvases,
-  });
-
-  registerScrollPositions(doc);
-
-  const transformCleanup = transformDOM
-    ? performDOMTransform({
+  const allElements =
+    typeof oneOrMoreElements.length !== 'undefined'
+      ? oneOrMoreElements
+      : [oneOrMoreElements];
+  const htmlParts = [];
+  const assetUrls = [];
+  for (const originalElement of allElements) {
+    const { element, cleanup: canvasCleanup } = inlineCanvases(
+      originalElement,
+      {
         doc,
-        element,
-        ...transformDOM,
-      })
-    : undefined;
+        responsiveInlinedCanvases,
+      },
+    );
 
-  element.querySelectorAll('script').forEach(scriptEl => {
-    scriptEl.parentNode.removeChild(scriptEl);
-  });
+    registerScrollPositions(doc);
 
-  doc
-    .querySelectorAll('[data-happo-focus]')
-    .forEach(e => e.removeAttribute('data-happo-focus'));
+    const transformCleanup = transformDOM
+      ? performDOMTransform({
+          doc,
+          element,
+          ...transformDOM,
+        })
+      : undefined;
 
-  if (doc.activeElement && doc.activeElement !== doc.body) {
-    doc.activeElement.setAttribute('data-happo-focus', 'true');
+    element.querySelectorAll('script').forEach(scriptEl => {
+      scriptEl.parentNode.removeChild(scriptEl);
+    });
+
+    doc
+      .querySelectorAll('[data-happo-focus]')
+      .forEach(e => e.removeAttribute('data-happo-focus'));
+
+    if (doc.activeElement && doc.activeElement !== doc.body) {
+      doc.activeElement.setAttribute('data-happo-focus', 'true');
+    }
+
+    assetUrls.push(
+      ...getElementAssetUrls(element, {
+        doc,
+        handleBase64Image,
+      }),
+    );
+
+    htmlParts.push(element.outerHTML);
+    if (canvasCleanup) canvasCleanup();
+    if (transformCleanup) transformCleanup();
   }
 
-  const assetUrls = getElementAssetUrls(element, {
-    doc,
-    handleBase64Image,
-  });
-
-  const html = element.outerHTML;
   const cssBlocks = extractCSSBlocks(doc);
   const htmlElementAttrs = extractElementAttributes(doc.documentElement);
   const bodyElementAttrs = extractElementAttributes(doc.body);
 
-  if (canvasCleanup) canvasCleanup();
-  if (transformCleanup) transformCleanup();
-
   return {
-    html,
+    html: htmlParts.join('\n'),
     assetUrls,
     cssBlocks,
     htmlElementAttrs,
