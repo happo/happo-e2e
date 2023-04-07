@@ -159,6 +159,21 @@ function testGithubActionsEnvironment() {
   assert.ok(result.message !== undefined);
 }
 
+function testGithubMergeGroupEnvironment() {
+  const githubEnv = {
+    GITHUB_SHA: 'ccddffddccffdd',
+    GITHUB_EVENT_PATH: path.resolve(
+      __dirname,
+      'github_merge_group_event.json',
+    ),
+  };
+  let result = resolveEnvironment(githubEnv);
+  assert.equal(result.beforeSha, 'f95f852bd8fca8fcc58a9a2d6c842781e32a215e');
+  assert.equal(result.afterSha, 'ec26c3e57ca3a959ca5aad62de7213c562f8c821');
+  assert.equal(result.link, 'https://github.com/Codertocat/Hello-World/commit/ec26c3e57ca3a959ca5aad62de7213c562f8c821');
+  assert.ok(result.message !== undefined);
+}
+
 function testTravisEnv() {
   const travisEnv = {
     HAPPO_GITHUB_BASE: 'http://git.hub',
@@ -250,6 +265,7 @@ function testHappoEnv() {
 
 function runTest() {
   testGithubActionsEnvironment();
+  testGithubMergeGroupEnvironment();
   testDevEnv();
   testCircleCIEnv();
   testTravisEnv();
