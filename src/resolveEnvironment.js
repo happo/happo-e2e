@@ -74,6 +74,9 @@ function resolveLink(env) {
     if (ghEvent.head_commit) {
       return ghEvent.head_commit.url;
     }
+    if (ghEvent.merge_group) {
+      return `${ghEvent.repository.html_url}/commit/${ghEvent.merge_group.head_sha}`;
+    }
     if (GITHUB_SHA && ghEvent.repository) {
       return `${ghEvent.repository.html_url}/commit/${GITHUB_SHA}`;
     }
@@ -206,6 +209,9 @@ function resolveBeforeSha(env, afterSha) {
     if (ghEvent.pull_request) {
       return ghEvent.pull_request.base.sha;
     }
+    if (ghEvent.merge_group) {
+      return ghEvent.merge_group.base_sha;
+    }
     return ghEvent.before;
   }
 
@@ -276,6 +282,9 @@ function resolveAfterSha(env) {
     const ghEvent = require(GITHUB_EVENT_PATH);
     if (ghEvent.pull_request) {
       return ghEvent.pull_request.head.sha;
+    }
+    if (ghEvent.merge_group) {
+      return ghEvent.merge_group.head_sha;
     }
     return ghEvent.after || GITHUB_SHA;
   }
