@@ -27,6 +27,14 @@ function runTest() {
     'http://goo.bar/bar/foo.png',
   );
   assert.equal(
+    makeAbsolute('../bar/foo.png', 'http://goo.bar/foo/test.html?foo=bar'),
+    'http://goo.bar/bar/foo.png',
+  );
+  assert.equal(
+    makeAbsolute('./bar/foo.png', 'http://goo.bar/foo/test.html?foo=bar#difference'),
+    'http://goo.bar/foo/bar/foo.png',
+  );
+  assert.equal(
     makeAbsolute('/bar/foo.png', 'http://goo.bar/foo/'),
     'http://goo.bar/bar/foo.png',
   );
