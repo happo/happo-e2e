@@ -102,11 +102,22 @@ Docs:
   }
 
   async finish() {
+    if (HAPPO_DEBUG) {
+      console.log('[HAPPO] Running Controller.finish');
+    }
     if (this.localSnapshots.length) {
+      if (HAPPO_DEBUG) {
+        console.log(
+          `[HAPPO] Processing ${this.localSnapshots.length} local snapshots`,
+        );
+      }
       await this.processSnapRequestIds([await this.uploadLocalSnapshots()]);
       return null;
     }
     if (!this.snapshots.length) {
+      if (HAPPO_DEBUG) {
+        console.log('[HAPPO] No snapshots recorded');
+      }
       return null;
     }
     this.dedupeSnapshots();
@@ -223,6 +234,10 @@ Docs:
     }
     if (!variant) {
       throw new Error('Missing `variant`');
+    }
+
+    if (HAPPO_DEBUG) {
+      console.log(`[HAPPO] Registering snapshot for ${component} > ${variant}`);
     }
     this.snapshotAssetUrls.push(...assetUrls);
     const targets = this.handleDynamicTargets(rawTargets);
