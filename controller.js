@@ -98,7 +98,11 @@ Docs:
   }
 
   isActive() {
-    return !!this.happoConfig;
+    const result = !!this.happoConfig;
+    if (HAPPO_DEBUG) {
+      console.log('[HAPPO] Controller.isActive()?', result);
+    }
+    return result;
   }
 
   async finish() {
