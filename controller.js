@@ -105,6 +105,32 @@ Docs:
     return result;
   }
 
+  async uploadAssetsIfNeeded({ buffer, hash }) {
+    if (HAPPO_DEBUG) {
+      console.log(`[HAPPO] Uploading assets package`);
+    }
+    const assetsRes = await makeRequest(
+      {
+        url: `${this.happoConfig.endpoint}/api/snap-requests/assets/${hash}`,
+        method: 'POST',
+        json: true,
+        formData: {
+          payload: {
+            options: {
+              filename: 'payload.zip',
+              contentType: 'application/zip',
+            },
+            value: buffer,
+          },
+        },
+      },
+      { ...this.happoConfig, maxTries: 3 },
+    );
+    if (HAPPO_DEBUG) {
+      console.log('[HAPPO] Done uploading assets package, got', assetsRes);
+    }
+  }
+
   async finish() {
     if (HAPPO_DEBUG) {
       console.log('[HAPPO] Running Controller.finish');
@@ -136,29 +162,7 @@ Docs:
     const uniqueUrls = getUniqueUrls(allUrls);
     const { buffer, hash } = await createAssetPackage(uniqueUrls);
 
-    if (HAPPO_DEBUG) {
-      console.log(`[HAPPO] Uploading assets package`);
-    }
-    const assetsRes = await makeRequest(
-      {
-        url: `${this.happoConfig.endpoint}/api/snap-requests/assets/${hash}`,
-        method: 'POST',
-        json: true,
-        formData: {
-          payload: {
-            options: {
-              filename: 'payload.zip',
-              contentType: 'application/zip',
-            },
-            value: buffer,
-          },
-        },
-      },
-      { ...this.happoConfig, maxTries: 3 },
-    );
-    if (HAPPO_DEBUG) {
-      console.log('[HAPPO] Done uploading assets package, got', assetsRes);
-    }
+    await this.uploadAssetsIfNeeded({ buffer, hash });
 
     const globalCSS = this.allCssBlocks.map(block => ({
       id: block.key,
