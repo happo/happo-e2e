@@ -107,6 +107,32 @@ Docs:
 
   async uploadAssetsIfNeeded({ buffer, hash }) {
     if (HAPPO_DEBUG) {
+      console.log(`[HAPPO] Checking if we need to upload assets`);
+    }
+
+    try {
+      // Check if the assets already exist. If so, we don't have to upload them.
+      const assetsDataRes = await makeRequest(
+        {
+          url: `${this.happoConfig.endpoint}/api/snap-requests/assets-data/${hash}`,
+          method: 'GET',
+          json: true,
+        },
+        { ...this.happoConfig },
+      );
+      if (HAPPO_DEBUG) {
+        console.log(
+          `[HAPPO] Reusing existing assets at ${assetsDataRes.path} (previously uploaded on ${assetsDataRes.uploadedAt})`,
+        );
+      }
+      return assetsDataRes.path;
+    } catch (e) {
+      if (e.statusCode !== 404) {
+        throw e;
+      }
+    }
+
+    if (HAPPO_DEBUG) {
       console.log(`[HAPPO] Uploading assets package`);
     }
     const assetsRes = await makeRequest(
@@ -129,6 +155,7 @@ Docs:
     if (HAPPO_DEBUG) {
       console.log('[HAPPO] Done uploading assets package, got', assetsRes);
     }
+    return assetsRes.path;
   }
 
   async finish() {
@@ -162,7 +189,7 @@ Docs:
     const uniqueUrls = getUniqueUrls(allUrls);
     const { buffer, hash } = await createAssetPackage(uniqueUrls);
 
-    await this.uploadAssetsIfNeeded({ buffer, hash });
+    const assetsPath = await this.uploadAssetsIfNeeded({ buffer, hash });
 
     const globalCSS = this.allCssBlocks.map(block => ({
       id: block.key,
@@ -209,7 +236,7 @@ Docs:
         asyncResults: true,
         endpoint: this.happoConfig.endpoint,
         globalCSS,
-        assetsPackage: assetsRes.path,
+        assetsPackage: assetsPath,
         snapPayloads: snapshotsForTarget,
         apiKey: this.happoConfig.apiKey,
         apiSecret: this.happoConfig.apiSecret,
