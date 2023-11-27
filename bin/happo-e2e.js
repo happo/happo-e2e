@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 
-const http = require('http');
 const { spawn } = require('child_process');
+const http = require('http');
+
+const { hideBin } = require('yargs/helpers');
+const yargs = require('yargs/yargs');
 
 const makeRequest = require('happo.io/build/makeRequest').default;
-const compareReports = require('happo.io/build/commands/compareReports')
-  .default;
+const compareReports =
+  require('happo.io/build/commands/compareReports').default;
 
 const loadHappoConfig = require('../src/loadHappoConfig');
 const resolveEnvironment = require('../src/resolveEnvironment');
@@ -86,33 +89,41 @@ function requestHandler(req, res) {
   });
 }
 
-async function finalizeAll() {
+async function finalizeAll(argv) {
   const happoConfig = await loadHappoConfig();
   if (!happoConfig) {
     return;
   }
 
-  const {
-    beforeSha,
-    afterSha,
-    link,
-    message,
-    nonce,
-    notify,
-    fallbackShas,
-  } = resolveEnvironment();
+  const { beforeSha, afterSha, link, message, nonce, notify, fallbackShas } =
+    resolveEnvironment();
   if (!nonce) {
     throw new Error('[HAPPO] Missing HAPPO_NONCE environment variable');
   }
+  const body = {
+    project: happoConfig.project,
+    nonce,
+  };
+  const rawSkippedExamples = yargs(argv).argv.skippedExamples;
+  if (rawSkippedExamples) {
+    try {
+      const skippedExamples = JSON.parse(rawSkippedExamples);
+      body.skippedExamples = skippedExamples;
+    } catch (e) {
+      console.error(
+        'Error when parsing --skippedExamples',
+        rawSkippedExamples,
+      );
+      throw e;
+    }
+  }
+
   await makeRequest(
     {
       url: `${happoConfig.endpoint}/api/async-reports/${afterSha}/finalize`,
       method: 'POST',
       json: true,
-      body: {
-        project: happoConfig.project,
-        nonce,
-      },
+      body,
     },
     { ...happoConfig, maxTries: 3 },
   );
@@ -139,15 +150,8 @@ async function finalizeHappoReport() {
     return;
   }
 
-  const {
-    beforeSha,
-    afterSha,
-    link,
-    message,
-    nonce,
-    notify,
-    fallbackShas,
-  } = resolveEnvironment();
+  const { beforeSha, afterSha, link, message, nonce, notify, fallbackShas } =
+    resolveEnvironment();
   const reportResult = await postAsyncReport({
     requestIds: [...allRequestIds],
     nonce,
@@ -192,9 +196,9 @@ function startServer(port) {
 async function init(argv) {
   const dashdashIndex = argv.indexOf('--');
   if (dashdashIndex === -1) {
-    const isFinalizeCommand = argv[argv.length - 1] === 'finalize';
+    const isFinalizeCommand = argv[0] === 'finalize';
     if (isFinalizeCommand) {
-      await finalizeAll();
+      await finalizeAll(argv);
       return;
     }
     failWithMissingCommand();
@@ -235,7 +239,7 @@ async function init(argv) {
   });
 }
 
-init(process.argv).catch(e => {
+init(hideBin(process.argv)).catch(e => {
   console.error(e);
   process.exit(1);
 });
