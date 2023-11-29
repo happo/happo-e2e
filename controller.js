@@ -341,6 +341,40 @@ Docs:
     });
   }
 
+  removeDuplicatesInTimeframe({ start, end }) {
+    if (HAPPO_DEBUG) {
+      console.log(
+        `[HAPPO] Removing duplicate snapshots made between ${new Date(
+          start,
+        )} and ${new Date(end)}`,
+      );
+    }
+    const seenSnapshots = {};
+    this.snapshots = this.snapshots.filter(snapshot => {
+      const { timestamp, component, variant } = snapshot;
+      if (!timestamp) {
+        return true;
+      }
+      const id = [component, variant].join('-_|_-');
+      const inTimeframe = timestamp >= start && timestamp <= end;
+      if (inTimeframe) {
+        if (seenSnapshots[id]) {
+          // Found a duplicate made in the timeframe specified
+          if (HAPPO_DEBUG) {
+            console.log(
+              `[HAPPO] Found duplicate snapshot to remove: "${component}", "${variant}" at timestamp ${new Date(
+                timestamp,
+              )}`,
+            );
+          }
+          return false;
+        }
+        seenSnapshots[id] = true;
+      }
+      return true;
+    });
+  }
+
   async processSnapRequestIds(allRequestIds) {
     if (HAPPO_E2E_PORT) {
       // We're running with `happo-cypress --`
