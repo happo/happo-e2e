@@ -73,10 +73,34 @@ function runMultiElementTest() {
   `.trim());
 }
 
+function runAssetsTest() {
+  const { JSDOM } = jsdom;
+  const dom = new JSDOM(`
+<!DOCTYPE html>
+<html>
+  <body>
+  <img src="/hello.png">
+  <div style="background-image: url(/world.png)">
+  <svg>
+      <image href="../inside-svg.png"></image>
+  </svg>
+  </body>
+</html>
+  `);
+  const { document: doc } = dom.window;
+  const element = doc.querySelector('body');
+  let snapshot = takeDOMSnapshot({ doc, element });
+  assert.equal(snapshot.assetUrls.length, 3);
+  assert.equal(snapshot.assetUrls[0].url, '/hello.png');
+  assert.equal(snapshot.assetUrls[1].url, '/world.png');
+  assert.equal(snapshot.assetUrls[2].url, '../inside-svg.png');
+}
+
 function runTest() {
   runBasicTest();
   runFocusTest();
   runMultiElementTest();
+  runAssetsTest();
 }
 
 runTest();
