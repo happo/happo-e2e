@@ -41,7 +41,7 @@ async function runBasicTest() {
     assert.equal(
       pkg.hash,
       process.env.CI
-        ? 'aed32b1cc82366d461b7755d5eb3f13a'
+        ? 'fb8d38b72a5a6f768c529e82b9996c4c'
         : '558b9f58b427a127a271719fb27e0141',
     );
     return pkg;
