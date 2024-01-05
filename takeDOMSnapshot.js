@@ -53,6 +53,7 @@ function getElementAssetUrls(
     }
     const srcset = element.getAttribute('srcset');
     const src = element.getAttribute('src');
+    const href = element.tagName.toLowerCase() === 'image' && element.getAttribute('href');
     const style = element.getAttribute('style');
     const base64Url = element._base64Url;
     if (base64Url) {
@@ -76,6 +77,9 @@ function getElementAssetUrls(
           baseUrl: element.baseURI,
         })),
       );
+    }
+    if (href) {
+      allUrls.push({ url: href, baseUrl: element.baseURI });
     }
   });
   return allUrls.filter(({ url }) => !url.startsWith('data:'));
