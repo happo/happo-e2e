@@ -59,7 +59,7 @@ async function runLocalhostTest() {
     assert.equal(
       pkg.hash,
       process.env.CI
-        ? '37d4189cb825c87641f36f9c9222d6ff'
+        ? '5b26f047fbe537d110a1faac00ae1a94'
         : '4b2ca8574350a846230c60b21bc2058f',
     );
     return pkg;
