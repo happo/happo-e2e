@@ -37,21 +37,27 @@ function runFocusTest() {
   const { document: doc } = dom.window;
   const element = doc.querySelector('main');
   let snapshot = takeDOMSnapshot({ doc, element });
-  assert.equal(snapshot.html.trim(), `
+  assert.equal(
+    snapshot.html.trim(),
+    `
     <main>
       <input type="text" name="name">
       <input type="checkbox">
     </main>
-  `.trim());
+  `.trim(),
+  );
 
   element.querySelector('input').focus();
   snapshot = takeDOMSnapshot({ doc, element });
-  assert.equal(snapshot.html.trim(), `
+  assert.equal(
+    snapshot.html.trim(),
+    `
     <main>
       <input type="text" name="name" data-happo-focus="true">
       <input type="checkbox">
     </main>
-  `.trim());
+  `.trim(),
+  );
 }
 
 function runMultiElementTest() {
@@ -68,9 +74,12 @@ function runMultiElementTest() {
   const { document: doc } = dom.window;
   const element = doc.querySelectorAll('button');
   let snapshot = takeDOMSnapshot({ doc, element });
-  assert.equal(snapshot.html.trim(), `
+  assert.equal(
+    snapshot.html.trim(),
+    `
   <button>Hello</button>\n<button>World</button>
-  `.trim());
+  `.trim(),
+  );
 }
 
 function runAssetsTest() {
@@ -96,11 +105,49 @@ function runAssetsTest() {
   assert.equal(snapshot.assetUrls[2].url, '../inside-svg.png');
 }
 
+function runRadioAndCheckboxTest() {
+  const { JSDOM } = jsdom;
+  const dom = new JSDOM(`
+<!DOCTYPE html>
+<html>
+  <body>
+    <form>
+      <input type="radio" name="foo" value="a">
+      <input type="radio" name="foo" value="b" checked="checked">
+      <input type="radio" name="foo" value="c">
+      <input type="checkbox" name="bar" checked="checked">
+      <input type="checkbox" name="baz">
+      <input type="checkbox" name="car">
+    </form>
+  </body>
+</html>
+  `);
+  const { document: doc } = dom.window;
+  doc.querySelector('input[type="radio"][value="a"]').checked = true;
+  doc.querySelector('input[type="checkbox"][name="baz"]').checked = true;
+  const element = doc.querySelector('form');
+  const snapshot = takeDOMSnapshot({ doc, element });
+  assert.equal(
+    snapshot.html,
+    `
+    <form>
+      <input type="radio" name="foo" value="a" checked="checked">
+      <input type="radio" name="foo" value="b">
+      <input type="radio" name="foo" value="c">
+      <input type="checkbox" name="bar" checked="checked">
+      <input type="checkbox" name="baz" checked="checked">
+      <input type="checkbox" name="car">
+    </form>
+  `.trim(),
+  );
+}
+
 function runTest() {
   runBasicTest();
   runFocusTest();
   runMultiElementTest();
   runAssetsTest();
+  runRadioAndCheckboxTest();
 }
 
 runTest();

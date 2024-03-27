@@ -53,7 +53,8 @@ function getElementAssetUrls(
     }
     const srcset = element.getAttribute('srcset');
     const src = element.getAttribute('src');
-    const href = element.tagName.toLowerCase() === 'image' && element.getAttribute('href');
+    const href =
+      element.tagName.toLowerCase() === 'image' && element.getAttribute('href');
     const style = element.getAttribute('style');
     const base64Url = element._base64Url;
     if (base64Url) {
@@ -160,6 +161,17 @@ function registerScrollPositions(doc) {
   }
 }
 
+function registerCheckedInputs(doc) {
+  const elements = doc.body.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+  for (const node of elements) {
+    if (node.checked) {
+      node.setAttribute('checked', 'checked');
+    } else {
+      node.removeAttribute('checked');
+    }
+  }
+}
+
 function extractElementAttributes(el) {
   const result = {};
   [...el.attributes].forEach(item => {
@@ -186,6 +198,27 @@ function performDOMTransform({ doc, selector, transform, element }) {
   };
 }
 
+function transformToElementArray(elements, doc) {
+  // Check if 'elements' is already an array
+  if (Array.isArray(elements)) {
+    return elements;
+  }
+  // Check if 'elements' is a NodeList
+  if (elements instanceof doc.defaultView.NodeList) {
+    return Array.from(elements);
+  }
+  // Check if 'elements' is a single HTMLElement
+  if (elements instanceof doc.defaultView.HTMLElement) {
+    return [elements];
+  }
+
+  if (typeof elements.length !== 'undefined') {
+    return elements;
+  }
+
+  return [elements];
+}
+
 function takeDOMSnapshot({
   doc,
   element: oneOrMoreElements,
@@ -193,10 +226,7 @@ function takeDOMSnapshot({
   transformDOM,
   handleBase64Image,
 } = {}) {
-  const allElements =
-    typeof oneOrMoreElements.length !== 'undefined'
-      ? oneOrMoreElements
-      : [oneOrMoreElements];
+  const allElements = transformToElementArray(oneOrMoreElements, doc);
   const htmlParts = [];
   const assetUrls = [];
   for (const originalElement of allElements) {
@@ -209,6 +239,7 @@ function takeDOMSnapshot({
     );
 
     registerScrollPositions(doc);
+    registerCheckedInputs(doc);
 
     const transformCleanup = transformDOM
       ? performDOMTransform({
