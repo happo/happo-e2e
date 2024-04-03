@@ -86,6 +86,16 @@ function getElementAssetUrls(
   return allUrls.filter(({ url }) => !url.startsWith('data:'));
 }
 
+function copyStyles(sourceElement, targetElement) {
+  const computedStyle = window.getComputedStyle(sourceElement);
+
+  for (let i = 0; i < computedStyle.length; i++) {
+    const key = computedStyle[i];
+    const value = computedStyle.getPropertyValue(key);
+    targetElement.style.setProperty(key, value);
+  }
+}
+
 function inlineCanvases(element, { doc, responsiveInlinedCanvases = false }) {
   const canvases = [];
   if (element.tagName === 'CANVAS') {
@@ -124,6 +134,7 @@ function inlineCanvases(element, { doc, responsiveInlinedCanvases = false }) {
         const height = canvas.getAttribute('height');
         image.setAttribute('width', width);
         image.setAttribute('height', height);
+        copyStyles(canvas, image);
       }
       canvas.replaceWith(image);
       if (canvas === element) {
@@ -162,7 +173,9 @@ function registerScrollPositions(doc) {
 }
 
 function registerCheckedInputs(doc) {
-  const elements = doc.body.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+  const elements = doc.body.querySelectorAll(
+    'input[type="checkbox"], input[type="radio"]',
+  );
   for (const node of elements) {
     if (node.checked) {
       node.setAttribute('checked', 'checked');
