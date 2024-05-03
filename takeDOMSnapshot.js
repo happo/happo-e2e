@@ -13,7 +13,7 @@ function extractCSSBlocks(doc) {
   styleElements.forEach(element => {
     if (element.tagName === 'LINK') {
       // <link href>
-      const href = element.getAttribute('href');
+      const href = element.href || element.getAttribute('href');
       blocks.push({ key: href, href, baseUrl: element.baseURI });
     } else {
       // <style>
