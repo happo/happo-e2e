@@ -87,6 +87,9 @@ function runAssetsTest() {
   const dom = new JSDOM(`
 <!DOCTYPE html>
 <html>
+  <head>
+    <link href="/foobar.css" rel="stylesheet" />
+  </head>
   <body>
   <img src="/hello.png">
   <div style="background-image: url(/world.png)">
@@ -103,6 +106,9 @@ function runAssetsTest() {
   assert.equal(snapshot.assetUrls[0].url, '/hello.png');
   assert.equal(snapshot.assetUrls[1].url, '/world.png');
   assert.equal(snapshot.assetUrls[2].url, '../inside-svg.png');
+  assert.equal(snapshot.cssBlocks.length, 1);
+  assert.equal(snapshot.cssBlocks[0].href, '/foobar.css');
+  assert.equal(snapshot.cssBlocks[0].baseUrl, 'about:blank');
 }
 
 function runRadioAndCheckboxTest() {
