@@ -38,6 +38,7 @@
     "image-size": "^1.0.1",
     "mkdirp": "^1.0.4",
     "node-fetch": "^2.0.0",
+    "p-all": "^3.0.0",
     "parse-srcset": "^1.0.2",
     "string.prototype.replaceall": "^1.0.6",
     "yargs": "^17.7.2"

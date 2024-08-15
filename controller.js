@@ -4,6 +4,7 @@ const fs = require('fs');
 const mkdirp = require('mkdirp');
 const nodeFetch = require('node-fetch');
 const imageSize = require('image-size');
+const pAll = require('p-all');
 
 const { RemoteBrowserTarget } = require('happo.io');
 const createAssetPackage = require('./src/createAssetPackage');
@@ -38,7 +39,7 @@ function ampersands(string) {
 }
 
 async function downloadCSSContent(blocks) {
-  const promises = blocks.map(async (block) => {
+  const actions = blocks.map((block) => async () => {
     if (block.href) {
       const absUrl = makeAbsolute(block.href, block.baseUrl);
       if (HAPPO_DEBUG) {
@@ -72,7 +73,7 @@ async function downloadCSSContent(blocks) {
     }
   });
 
-  await Promise.all(promises);
+  await pAll(actions, { concurrency: 5 });
 }
 
 class Controller {
