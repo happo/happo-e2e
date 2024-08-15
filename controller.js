@@ -23,7 +23,7 @@ const { HAPPO_E2E_PORT, HAPPO_DEBUG, HAPPO_ENABLED } = process.env;
 function getUniqueUrls(urls) {
   const seenKeys = new Set();
   const result = [];
-  urls.forEach(url => {
+  urls.forEach((url) => {
     const key = [url.url, url.baseUrl].join('||');
     if (!seenKeys.has(key)) {
       result.push(url);
@@ -38,7 +38,7 @@ function ampersands(string) {
 }
 
 async function downloadCSSContent(blocks) {
-  const promises = blocks.map(async block => {
+  const promises = blocks.map(async (block) => {
     if (block.href) {
       const absUrl = makeAbsolute(block.href, block.baseUrl);
       if (HAPPO_DEBUG) {
@@ -180,8 +180,8 @@ Docs:
     this.dedupeSnapshots();
     await downloadCSSContent(this.allCssBlocks);
     const allUrls = [...this.snapshotAssetUrls];
-    this.allCssBlocks.forEach(block => {
-      findCSSAssetUrls(block.content).forEach(url =>
+    this.allCssBlocks.forEach((block) => {
+      findCSSAssetUrls(block.content).forEach((url) =>
         allUrls.push({ url, baseUrl: block.assetsBaseUrl || block.baseUrl }),
       );
     });
@@ -191,7 +191,7 @@ Docs:
 
     const assetsPath = await this.uploadAssetsIfNeeded({ buffer, hash });
 
-    const globalCSS = this.allCssBlocks.map(block => ({
+    const globalCSS = this.allCssBlocks.map((block) => ({
       id: block.key,
       conditional: true,
       css: block.content,
@@ -201,15 +201,13 @@ Docs:
         for (const block of globalCSS) {
           block.css = block.css.split(url.url).join(url.name);
         }
-        this.snapshots.forEach(snapshot => {
+        this.snapshots.forEach((snapshot) => {
           snapshot.html = snapshot.html.split(url.url).join(url.name);
           if (/&/.test(url.url)) {
             // When URL has an ampersand, we need to make sure the html wasn't
             // escaped so we replace again, this time with "&" replaced by
             // "&amp;"
-            snapshot.html = snapshot.html
-              .split(ampersands(url.url))
-              .join(url.name);
+            snapshot.html = snapshot.html.split(ampersands(url.url)).join(url.name);
           }
         });
       }
@@ -224,9 +222,7 @@ Docs:
       );
       if (!snapshotsForTarget.length) {
         if (HAPPO_DEBUG) {
-          console.log(
-            `[HAPPO] No snapshots recorded for target=${name}. Skipping.`,
-          );
+          console.log(`[HAPPO] No snapshots recorded for target=${name}. Skipping.`);
         }
         continue;
       }
@@ -282,12 +278,12 @@ Docs:
       component,
       variant,
       targets,
-      stylesheets: cssBlocks.map(b => b.key),
+      stylesheets: cssBlocks.map((b) => b.key),
       htmlElementAttrs,
       bodyElementAttrs,
     });
-    cssBlocks.forEach(block => {
-      if (this.allCssBlocks.some(b => b.key === block.key)) {
+    cssBlocks.forEach((block) => {
+      if (this.allCssBlocks.some((b) => b.key === block.key)) {
         return;
       }
       this.allCssBlocks.push(block);
@@ -350,7 +346,7 @@ Docs:
       );
     }
     const seenSnapshots = {};
-    this.snapshots = this.snapshots.filter(snapshot => {
+    this.snapshots = this.snapshots.filter((snapshot) => {
       const { timestamp, component, variant } = snapshot;
       if (!timestamp) {
         return true;
@@ -416,7 +412,7 @@ Docs:
     if (typeof targets === 'undefined') {
       // return non-dynamic targets from .happo.js
       return Object.keys(this.happoConfig.targets).filter(
-        targetName => !this.happoConfig.targets[targetName].__dynamic,
+        (targetName) => !this.happoConfig.targets[targetName].__dynamic,
       );
     }
     for (const target of targets) {
@@ -525,10 +521,7 @@ Docs:
 
   dedupeSnapshots() {
     for (const snapshot of this.snapshots) {
-      snapshot.variant = this.dedupeVariant(
-        snapshot.component,
-        snapshot.variant,
-      );
+      snapshot.variant = this.dedupeVariant(snapshot.component, snapshot.variant);
     }
   }
 
@@ -538,7 +531,7 @@ Docs:
     if (isFirst) {
       await mkdirp('.happo-tmp/_inlined');
       await new Promise((resolve, reject) =>
-        fs.writeFile(filenameB64, base64Chunk, e => {
+        fs.writeFile(filenameB64, base64Chunk, (e) => {
           if (e) {
             reject(e);
           } else {
@@ -548,7 +541,7 @@ Docs:
       );
     } else {
       await new Promise((resolve, reject) =>
-        fs.appendFile(filenameB64, base64Chunk, e => {
+        fs.appendFile(filenameB64, base64Chunk, (e) => {
           if (e) {
             reject(e);
           } else {

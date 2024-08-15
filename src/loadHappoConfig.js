@@ -14,4 +14,4 @@ module.exports = async function loadHappoConfig() {
       throw e;
     }
   }
-}
+};

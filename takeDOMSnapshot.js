@@ -10,20 +10,18 @@ function extractCSSBlocks(doc) {
   const blocks = [];
   const styleElements = doc.querySelectorAll(CSS_ELEMENTS_SELECTOR);
 
-  styleElements.forEach(element => {
+  styleElements.forEach((element) => {
     if (element.tagName === 'LINK') {
       // <link href>
       const href = element.href || element.getAttribute('href');
       blocks.push({ key: href, href, baseUrl: element.baseURI });
     } else {
       // <style>
-      const lines = Array.from(element.sheet.cssRules).map(r => r.cssText);
+      const lines = Array.from(element.sheet.cssRules).map((r) => r.cssText);
 
       // Filter out those lines that are comments (these are often source
       // mappings)
-      const content = lines
-        .filter(line => !COMMENT_PATTERN.test(line))
-        .join('\n');
+      const content = lines.filter((line) => !COMMENT_PATTERN.test(line)).join('\n');
 
       // Create a hash so that we can dedupe equal styles
       const key = md5(content).toString();
@@ -43,10 +41,8 @@ function getElementAssetUrls(
   { handleBase64Image = defaultHandleBase64Image },
 ) {
   const allUrls = [];
-  const allElements = [element].concat(
-    Array.from(element.querySelectorAll('*')),
-  );
-  allElements.forEach(element => {
+  const allElements = [element].concat(Array.from(element.querySelectorAll('*')));
+  allElements.forEach((element) => {
     if (element.tagName === 'SCRIPT') {
       // skip script elements
       return;
@@ -65,7 +61,7 @@ function getElementAssetUrls(
     }
     if (srcset) {
       allUrls.push(
-        ...parseSrcset(srcset).map(p => ({
+        ...parseSrcset(srcset).map((p) => ({
           url: p.url,
           baseUrl: element.baseURI,
         })),
@@ -73,7 +69,7 @@ function getElementAssetUrls(
     }
     if (style) {
       allUrls.push(
-        ...findCSSAssetUrls(style).map(url => ({
+        ...findCSSAssetUrls(style).map((url) => ({
           url,
           baseUrl: element.baseURI,
         })),
@@ -113,9 +109,7 @@ function inlineCanvases(element, { doc, responsiveInlinedCanvases = false }) {
       }
       const image = doc.createElement('img');
 
-      const url = `/.happo-tmp/_inlined/${md5(
-        canvasImageBase64,
-      ).toString()}.png`;
+      const url = `/.happo-tmp/_inlined/${md5(canvasImageBase64).toString()}.png`;
       image.src = url;
       image._base64Url = canvasImageBase64;
       const style = canvas.getAttribute('style');
@@ -187,7 +181,7 @@ function registerCheckedInputs(doc) {
 
 function extractElementAttributes(el) {
   const result = {};
-  [...el.attributes].forEach(item => {
+  [...el.attributes].forEach((item) => {
     result[item.name] = item.value;
   });
   return result;
@@ -243,13 +237,10 @@ function takeDOMSnapshot({
   const htmlParts = [];
   const assetUrls = [];
   for (const originalElement of allElements) {
-    const { element, cleanup: canvasCleanup } = inlineCanvases(
-      originalElement,
-      {
-        doc,
-        responsiveInlinedCanvases,
-      },
-    );
+    const { element, cleanup: canvasCleanup } = inlineCanvases(originalElement, {
+      doc,
+      responsiveInlinedCanvases,
+    });
 
     registerScrollPositions(doc);
     registerCheckedInputs(doc);
@@ -262,13 +253,13 @@ function takeDOMSnapshot({
         })
       : undefined;
 
-    element.querySelectorAll('script').forEach(scriptEl => {
+    element.querySelectorAll('script').forEach((scriptEl) => {
       scriptEl.parentNode.removeChild(scriptEl);
     });
 
     doc
       .querySelectorAll('[data-happo-focus]')
-      .forEach(e => e.removeAttribute('data-happo-focus'));
+      .forEach((e) => e.removeAttribute('data-happo-focus'));
 
     if (doc.activeElement && doc.activeElement !== doc.body) {
       doc.activeElement.setAttribute('data-happo-focus', 'true');

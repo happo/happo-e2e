@@ -12,7 +12,7 @@ module.exports = async function convertBase64FileToReal(filenameB64, filename) {
   readStream.pipe(new Base64Decode()).pipe(outStream);
   await readyPromise;
   await new Promise((resolve, reject) =>
-    fs.unlink(filenameB64, e => {
+    fs.unlink(filenameB64, (e) => {
       if (e) {
         reject(e);
       } else {

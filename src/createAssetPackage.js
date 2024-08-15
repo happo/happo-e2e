@@ -8,9 +8,7 @@ const makeAbsolute = require('./makeAbsolute');
 
 const { HAPPO_DOWNLOAD_ALL, HAPPO_DEBUG } = process.env;
 
-const FILE_CREATION_DATE = new Date(
-  'Fri March 20 2020 13:44:55 GMT+0100 (CET)',
-);
+const FILE_CREATION_DATE = new Date('Fri March 20 2020 13:44:55 GMT+0100 (CET)');
 
 function stripQueryParams(url) {
   const i = url.indexOf('?');
@@ -58,7 +56,7 @@ module.exports = function createAssetPackage(urls) {
   return new Promise(async (resolve, reject) => {
     const seenUrls = new Set();
     const archive = new Archiver('zip');
-    archive.on('error', e => reject(e));
+    archive.on('error', (e) => reject(e));
 
     // Create an in-memory stream
     const stream = new Writable();
@@ -67,7 +65,7 @@ module.exports = function createAssetPackage(urls) {
       data.push(...chunk);
       done();
     };
-    stream.on('error', e => console.error(e));
+    stream.on('error', (e) => console.error(e));
     stream.on('finish', () => {
       const buffer = Buffer.from(data);
       const hash = crypto.createHash('md5').update(buffer).digest('hex');
@@ -80,7 +78,7 @@ module.exports = function createAssetPackage(urls) {
     });
     archive.pipe(stream);
 
-    const promises = urls.map(async item => {
+    const promises = urls.map(async (item) => {
       const { url, baseUrl } = item;
       const isExternalUrl = /^https?:/.test(url);
       const isLocalhost = /\/\/(localhost|127\.0\.0\.1)(:|\/)/.test(url);

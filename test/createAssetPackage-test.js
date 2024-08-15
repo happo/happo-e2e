@@ -13,7 +13,7 @@ async function wrap(func) {
     return handler(request, response, { public: 'test-images' });
   });
 
-  await new Promise(resolve => {
+  await new Promise((resolve) => {
     server.listen(3412, () => {
       console.log('Running at http://localhost:3412');
       resolve();
@@ -73,7 +73,7 @@ async function runTest() {
 
 runTest()
   .then(() => process.exit(0))
-  .catch(e => {
+  .catch((e) => {
     console.error(e);
     process.exit(1);
   });

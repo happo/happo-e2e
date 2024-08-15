@@ -82,10 +82,7 @@ function resolveLink(env) {
     }
   }
 
-  if (
-    SYSTEM_PULLREQUEST_PULLREQUESTID &&
-    SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI
-  ) {
+  if (SYSTEM_PULLREQUEST_PULLREQUESTID && SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI) {
     return `${SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI}/pullrequest/${SYSTEM_PULLREQUEST_PULLREQUESTID}`.replace(
       /[^/]+@/,
       '',
@@ -234,9 +231,7 @@ function resolveBeforeSha(env, afterSha) {
     encoding: 'utf-8',
   });
   if (res.status !== 0) {
-    console.error(
-      `[HAPPO] Ignored error when resolving base commit: ${res.stderr}`,
-    );
+    console.error(`[HAPPO] Ignored error when resolving base commit: ${res.stderr}`);
     return undefined;
   }
   return res.stdout.split('\n')[0];
@@ -265,8 +260,7 @@ function resolveAfterSha(env) {
   }
   if (SYSTEM_PULLREQUEST_SOURCEBRANCH) {
     // azure pull request
-    const rawBranchName =
-      SYSTEM_PULLREQUEST_SOURCEBRANCH.split('/').reverse()[0];
+    const rawBranchName = SYSTEM_PULLREQUEST_SOURCEBRANCH.split('/').reverse()[0];
     const res = spawnSync('git', ['rev-parse', `origin/${rawBranchName}`], {
       encoding: 'utf-8',
     });
