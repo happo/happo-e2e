@@ -4,6 +4,7 @@ const fs = require('fs');
 const mkdirp = require('mkdirp');
 const nodeFetch = require('node-fetch');
 const imageSize = require('image-size');
+const pAll = require('p-all');
 
 const { RemoteBrowserTarget } = require('happo.io');
 const createAssetPackage = require('./src/createAssetPackage');
@@ -38,34 +39,41 @@ function ampersands(string) {
 }
 
 async function downloadCSSContent(blocks) {
-  const promises = blocks.map(async (block) => {
+  const actions = blocks.map((block) => async () => {
     if (block.href) {
       const absUrl = makeAbsolute(block.href, block.baseUrl);
       if (HAPPO_DEBUG) {
         console.log(`[HAPPO] Downloading CSS file from ${absUrl}`);
       }
-      const res = await proxiedFetch(absUrl);
-      if (!res.ok) {
+
+      let res;
+      try {
+        res = await proxiedFetch(absUrl, { retryCount: 5 });
+      } catch (e) {
         console.warn(
           `[HAPPO] Failed to fetch CSS file from ${block.href} (using base URL ${block.baseUrl}). This might mean styles are missing in your Happo screenshots`,
         );
         return;
       }
+
       let text = await res.text();
       if (HAPPO_DEBUG) {
         console.log(
           `[HAPPO] Done downloading CSS file from ${absUrl}. Got ${text.length} chars back.`,
         );
       }
+
       if (!absUrl.startsWith(block.baseUrl)) {
         text = makeExternalUrlsAbsolute(text, absUrl);
       }
+
       block.content = text;
       block.assetsBaseUrl = absUrl.replace(/\/[^/]*$/, '/');
       delete block.href;
     }
   });
-  await Promise.all(promises);
+
+  await pAll(actions, { concurrency: 5 });
 }
 
 class Controller {
