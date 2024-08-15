@@ -55,7 +55,11 @@ module.exports = function createAssetPackage(urls) {
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     const seenUrls = new Set();
-    const archive = new Archiver('zip');
+    const archive = new Archiver('zip', {
+      // Concurrency in the stat queue leads to non-deterministic output.
+      // https://github.com/archiverjs/node-archiver/issues/383#issuecomment-2253139948
+      statConcurrency: 1,
+    });
     archive.on('error', (e) => reject(e));
 
     // Create an in-memory stream
