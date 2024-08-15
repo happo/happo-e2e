@@ -112,25 +112,23 @@ module.exports = function createAssetPackage(urls) {
         });
       } else {
         const fetchUrl = makeAbsolute(url, baseUrl);
+
         if (HAPPO_DEBUG) {
           console.log(
             `[HAPPO] Fetching asset from ${fetchUrl} — storing as ${name}`,
           );
         }
+
         try {
-          const fetchRes = await proxiedFetch(fetchUrl);
-          if (!fetchRes.ok) {
-            console.log(
-              `[HAPPO] Failed to fetch url ${fetchUrl} — ${fetchRes.statusText}`,
-            );
-            return;
-          }
+          const fetchRes = await proxiedFetch(fetchUrl, { retryCount: 5 });
+
           if (isDynamic || isExternalUrl) {
             // Add a file suffix so that svg images work
             name = `${name}${getFileSuffixFromMimeType(
               fetchRes.headers.get('content-type'),
             )}`;
           }
+
           // decode URI to make sure "%20" and such are converted to the right
           // chars
           name = decodeURI(name);
