@@ -7,8 +7,7 @@ const { hideBin } = require('yargs/helpers');
 const yargs = require('yargs/yargs');
 
 const makeRequest = require('happo.io/build/makeRequest').default;
-const compareReports =
-  require('happo.io/build/commands/compareReports').default;
+const compareReports = require('happo.io/build/commands/compareReports').default;
 
 const loadHappoConfig = require('../src/loadHappoConfig');
 const resolveEnvironment = require('../src/resolveEnvironment');
@@ -59,7 +58,7 @@ async function postAsyncReport({ nonce, afterSha, requestIds }) {
 
 function requestHandler(req, res) {
   const bodyParts = [];
-  req.on('data', chunk => {
+  req.on('data', (chunk) => {
     bodyParts.push(chunk.toString());
   });
   req.on('end', async () => {
@@ -67,15 +66,15 @@ function requestHandler(req, res) {
       .join('')
       .split('\n')
       .filter(Boolean)
-      .map(requestId => parseInt(requestId, 10));
+      .map((requestId) => parseInt(requestId, 10));
 
-    if (potentialIds.some(id => isNaN(id))) {
+    if (potentialIds.some((id) => isNaN(id))) {
       res.writeHead(400);
       res.end('invalid payload');
       return;
     }
 
-    potentialIds.forEach(requestId => {
+    potentialIds.forEach((requestId) => {
       allRequestIds.add(parseInt(requestId, 10));
     });
 
@@ -110,10 +109,7 @@ async function finalizeAll(argv) {
       const skippedExamples = JSON.parse(rawSkippedExamples);
       body.skippedExamples = skippedExamples;
     } catch (e) {
-      console.error(
-        'Error when parsing --skippedExamples',
-        rawSkippedExamples,
-      );
+      console.error('Error when parsing --skippedExamples', rawSkippedExamples);
       throw e;
     }
   }
@@ -188,7 +184,7 @@ async function finalizeHappoReport() {
 
 function startServer(port) {
   const server = http.createServer(requestHandler);
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     server.listen(port, resolve);
   });
 }
@@ -220,13 +216,13 @@ async function init(argv) {
     shell: process.platform == 'win32',
   });
 
-  child.on('error', e => {
+  child.on('error', (e) => {
     console.error(e);
     process.exit(1);
   });
 
   const allowFailures = parseAllowFailures(argv.slice(0, dashdashIndex));
-  child.on('close', async code => {
+  child.on('close', async (code) => {
     if (code === 0 || allowFailures) {
       try {
         await finalizeHappoReport();
@@ -239,7 +235,7 @@ async function init(argv) {
   });
 }
 
-init(hideBin(process.argv)).catch(e => {
+init(hideBin(process.argv)).catch((e) => {
   console.error(e);
   process.exit(1);
 });
