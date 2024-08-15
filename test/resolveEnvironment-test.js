@@ -41,10 +41,7 @@ function testCircleCIEnv() {
 
   assert.equal(result.beforeSha, undefined);
   assert.equal(result.afterSha, 'abcdef');
-  assert.equal(
-    result.link,
-    'https://github.com/happo/happo-view/commit/abcdef',
-  );
+  assert.equal(result.link, 'https://github.com/happo/happo-view/commit/abcdef');
   assert.ok(result.message !== undefined);
 }
 
@@ -113,16 +110,12 @@ function testTagMatchingEnv() {
 
   assert.equal(result.afterSha, '25826448f15ebcb939804ca769a00ee1df08e10d');
   assert.equal(result.beforeSha, '25826448f15ebcb939804ca769a00ee1df08e10d');
-
 }
 
 function testGithubActionsEnvironment() {
   const githubEnv = {
     GITHUB_SHA: 'ccddffddccffdd',
-    GITHUB_EVENT_PATH: path.resolve(
-      __dirname,
-      'github_pull_request_event.json',
-    ),
+    GITHUB_EVENT_PATH: path.resolve(__dirname, 'github_pull_request_event.json'),
   };
   let result = resolveEnvironment(githubEnv);
   assert.equal(result.beforeSha, 'f95f852bd8fca8fcc58a9a2d6c842781e32a215e');
@@ -131,10 +124,7 @@ function testGithubActionsEnvironment() {
   assert.equal(result.message, 'Update the README with new information.');
 
   // Try with a push event
-  githubEnv.GITHUB_EVENT_PATH = path.resolve(
-    __dirname,
-    'github_push_event.json',
-  );
+  githubEnv.GITHUB_EVENT_PATH = path.resolve(__dirname, 'github_push_event.json');
   result = resolveEnvironment(githubEnv);
   assert.equal(result.beforeSha, '6113728f27ae82c7b1a177c8d03f9e96e0adf246');
   assert.equal(result.afterSha, '0000000000000000000000000000000000000000');
@@ -162,15 +152,15 @@ function testGithubActionsEnvironment() {
 function testGithubMergeGroupEnvironment() {
   const githubEnv = {
     GITHUB_SHA: 'ccddffddccffdd',
-    GITHUB_EVENT_PATH: path.resolve(
-      __dirname,
-      'github_merge_group_event.json',
-    ),
+    GITHUB_EVENT_PATH: path.resolve(__dirname, 'github_merge_group_event.json'),
   };
   let result = resolveEnvironment(githubEnv);
   assert.equal(result.beforeSha, 'f95f852bd8fca8fcc58a9a2d6c842781e32a215e');
   assert.equal(result.afterSha, 'ec26c3e57ca3a959ca5aad62de7213c562f8c821');
-  assert.equal(result.link, 'https://github.com/Codertocat/Hello-World/commit/ec26c3e57ca3a959ca5aad62de7213c562f8c821');
+  assert.equal(
+    result.link,
+    'https://github.com/Codertocat/Hello-World/commit/ec26c3e57ca3a959ca5aad62de7213c562f8c821',
+  );
   assert.ok(result.message !== undefined);
 }
 
