@@ -226,7 +226,7 @@ function resolveBeforeSha(env, afterSha) {
   }
 
   const baseBranch =
-    HAPPO_BASE_BRANCH || BASE_BRANCH || baseAzureBranch || 'origin/master';
+    HAPPO_BASE_BRANCH || BASE_BRANCH || baseAzureBranch || 'origin/main';
   const res = spawnSync('git', ['merge-base', baseBranch, afterSha], {
     encoding: 'utf-8',
   });
