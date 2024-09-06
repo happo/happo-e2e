@@ -1,7 +1,9 @@
-node_modules
-test
-run-tests.sh
-.importjs.js
-.github
-.node-version
+.eslintignore
 .eslintrc.js
+.github
+.importjs.js
+.node-version
+node_modules
+run-tests.sh
+test
+test-images
