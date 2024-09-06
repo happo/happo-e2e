@@ -36,7 +36,7 @@ function parseAllowFailures(argv) {
   return argv.indexOf('--allow-failures') > -1;
 }
 
-async function postAsyncReport({ nonce, afterSha, requestIds }) {
+async function postAsyncReport({ nonce, afterSha, requestIds, link, message }) {
   const happoConfig = await loadHappoConfig();
   if (!happoConfig) {
     return;
@@ -50,6 +50,8 @@ async function postAsyncReport({ nonce, afterSha, requestIds }) {
         requestIds,
         project: happoConfig.project,
         nonce,
+        link,
+        message,
       },
     },
     { ...happoConfig, maxTries: 3 },
@@ -152,6 +154,8 @@ async function finalizeHappoReport() {
     requestIds: [...allRequestIds],
     nonce,
     afterSha,
+    link,
+    message,
   });
   if (beforeSha) {
     const jobResult = await makeRequest(
