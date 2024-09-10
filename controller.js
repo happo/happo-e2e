@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const fs = require('fs');
 
-const mkdirp = require('mkdirp');
+const { mkdirp } = require('mkdirp');
 const nodeFetch = require('node-fetch');
 const imageSize = require('image-size');
 const pAll = require('p-all');
