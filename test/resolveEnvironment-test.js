@@ -51,7 +51,7 @@ function testAzureEnv() {
     BUILD_REPOSITORY_URI:
       'https://trotzig@dev.azure.com/trotzig/_git/happo-demo-azure-full-page',
     SYSTEM_PULLREQUEST_PULLREQUESTID: '99',
-    SYSTEM_PULLREQUEST_TARGETBRANCH: 'refs/head/master',
+    SYSTEM_PULLREQUEST_TARGETBRANCH: 'refs/head/main',
     SYSTEM_PULLREQUEST_SOURCEBRANCH: 'refs/head/dummy-branch',
     SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI:
       'https://trotzig@dev.azure.com/trotzig/_git/happo-demo-azure-full-page',
