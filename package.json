@@ -9,6 +9,9 @@
   "bin": {
     "happo-e2e": "./bin/happo-e2e.js"
   },
+  "resolutions": {
+    "strip-ansi": "6.0.1"
+  },
   "scripts": {
     "prepare": "yarn build",
     "lint": "eslint .",
