@@ -1,10 +1,11 @@
+const { Writable } = require('stream');
 const crypto = require('crypto');
 
 const Archiver = require('archiver');
-const { Writable } = require('stream');
+const mime = require('mime-types');
 
-const proxiedFetch = require('./fetch');
 const makeAbsolute = require('./makeAbsolute');
+const proxiedFetch = require('./fetch');
 
 const { HAPPO_DOWNLOAD_ALL, HAPPO_DEBUG } = process.env;
 
@@ -31,21 +32,12 @@ function normalize(url, baseUrl) {
   return url;
 }
 
-function getFileSuffixFromMimeType(mime) {
-  if (mime === 'image/svg+xml') {
-    return '.svg';
-  }
-
-  if (mime === 'image/vnd.microsoft.icon') {
-    return '.ico';
-  }
-
-  const match = mime.match(/^image\/(.+)$/);
-  if (!match) {
+function getFileSuffixFromMimeType(mimeType = '') {
+  const ext = mime.extension(mimeType);
+  if (!ext) {
     return '';
   }
-
-  return `.${match[1]}`;
+  return `.${ext}`;
 }
 
 module.exports = function createAssetPackage(urls) {
