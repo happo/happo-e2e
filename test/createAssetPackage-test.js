@@ -10,7 +10,7 @@ async function wrap(func) {
   const http = require('http');
 
   const server = http.createServer((request, response) => {
-    return handler(request, response, { public: 'test-images' });
+    return handler(request, response, { public: 'test-fixtures' });
   });
 
   await new Promise((resolve) => {
@@ -26,39 +26,31 @@ async function wrap(func) {
       fs.writeFileSync('test-package.zip', pkg.buffer);
     }
   } finally {
-    server.close();
+    await new Promise((resolve) => {
+      server.close(resolve);
+    });
   }
 }
 
-async function runBasicTest() {
+async function runTest() {
   await wrap(async () => {
     const pkg = await createAssetPackage([
       {
         url: '/sub%20folder/countries-bg.jpeg',
         baseUrl: 'http://localhost:3412',
       },
-    ]);
-    assert.equal(pkg.hash, 'fb8d38b72a5a6f768c529e82b9996c4c');
-    return pkg;
-  });
-}
-
-async function runLocalhostTest() {
-  await wrap(async () => {
-    const pkg = await createAssetPackage([
       {
         url: 'http://localhost:3412/sub%20folder/countries-bg.jpeg',
         baseUrl: 'http://localhost:3412',
       },
+      {
+        url: 'http://localhost:3412/foo.html',
+        baseUrl: 'http://localhost:3412',
+      },
     ]);
-    assert.equal(pkg.hash, '5b26f047fbe537d110a1faac00ae1a94');
+    assert.equal(pkg.hash, '898862aad00d429b73f57256332a6ee1');
     return pkg;
   });
-}
-
-async function runTest() {
-  await runBasicTest();
-  await runLocalhostTest();
 }
 
 runTest()

@@ -6,4 +6,5 @@
 node_modules
 run-tests.sh
 test
-test-images
+test-fixtures
+test-package.zip
