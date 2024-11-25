@@ -44,9 +44,83 @@ module.exports = function createAssetPackage(urls) {
   if (HAPPO_DEBUG) {
     console.log(`[HAPPO] Creating asset package from urls`, urls);
   }
+
   // eslint-disable-next-line no-async-promise-executor
   return new Promise(async (resolve, reject) => {
     const seenUrls = new Set();
+
+    // Get all of the archive items in parallel first. Then add them to the
+    // archive serially afterwards to ensure that packages are created
+    // deterministically.
+    const archiveItems = await Promise.all(
+      urls.map(async (item) => {
+        const { url, baseUrl } = item;
+        const isExternalUrl = /^https?:/.test(url);
+        const isLocalhost = /\/\/(localhost|127\.0\.0\.1)(:|\/)/.test(url);
+
+        if (!HAPPO_DOWNLOAD_ALL && isExternalUrl && !isLocalhost) {
+          return;
+        }
+
+        const isDynamic = url.includes('?');
+        let name =
+          isExternalUrl || isDynamic
+            ? `_external/${crypto.createHash('md5').update(url).digest('hex')}`
+            : normalize(stripQueryParams(url), baseUrl);
+
+        if (name.startsWith('#') || name === '' || seenUrls.has(name)) {
+          return;
+        }
+
+        seenUrls.add(name);
+
+        if (/\.happo-tmp\/_inlined/.test(name)) {
+          if (HAPPO_DEBUG) {
+            console.log(`[HAPPO] Adding inlined asset ${name}`);
+          }
+
+          return {
+            type: 'file',
+            name,
+            body: name,
+          };
+        } else {
+          const fetchUrl = makeAbsolute(url, baseUrl);
+
+          if (HAPPO_DEBUG) {
+            console.log(
+              `[HAPPO] Fetching asset from ${fetchUrl} — storing as ${name}`,
+            );
+          }
+
+          try {
+            const fetchRes = await proxiedFetch(fetchUrl, { retryCount: 5 });
+
+            if (isDynamic || isExternalUrl) {
+              // Add a file suffix so that svg images work
+              name = `${name}${getFileSuffixFromMimeType(
+                fetchRes.headers.get('content-type'),
+              )}`;
+            }
+
+            // decode URI to make sure "%20" and such are converted to the right
+            // chars
+            name = decodeURI(name);
+            item.name = `/${name}`;
+
+            return {
+              type: 'append',
+              name,
+              body: fetchRes.body,
+            };
+          } catch (e) {
+            console.log(`[HAPPO] Failed to fetch url ${fetchUrl}`);
+            console.error(e);
+          }
+        }
+      }),
+    );
+
     const archive = new Archiver('zip', {
       // Concurrency in the stat queue leads to non-deterministic output.
       // https://github.com/archiverjs/node-archiver/issues/383#issuecomment-2253139948
@@ -74,69 +148,26 @@ module.exports = function createAssetPackage(urls) {
     });
     archive.pipe(stream);
 
-    const promises = urls.map(async (item) => {
-      const { url, baseUrl } = item;
-      const isExternalUrl = /^https?:/.test(url);
-      const isLocalhost = /\/\/(localhost|127\.0\.0\.1)(:|\/)/.test(url);
-      if (!HAPPO_DOWNLOAD_ALL && isExternalUrl && !isLocalhost) {
-        return;
-      }
-      const isDynamic = url.indexOf('?') > 0;
-      let name =
-        isExternalUrl || isDynamic
-          ? `_external/${crypto.createHash('md5').update(url).digest('hex')}`
-          : normalize(stripQueryParams(url), baseUrl);
-      if (name.startsWith('#') || name === '') {
-        return;
-      }
-      if (seenUrls.has(name)) {
-        // already processed
-        return;
-      }
-      seenUrls.add(name);
-      if (/\.happo-tmp\/_inlined/.test(name)) {
-        if (HAPPO_DEBUG) {
-          console.log(`[HAPPO] Adding inlined asset ${name}`);
-        }
-        archive.file(name, {
-          name,
-          date: FILE_CREATION_DATE,
-        });
-      } else {
-        const fetchUrl = makeAbsolute(url, baseUrl);
+    // Add the archive items to the archive serially. This helps to ensure that
+    // the archive is created deterministically.
+    for (const item of archiveItems) {
+      if (item) {
+        const { type, name, body } = item;
 
-        if (HAPPO_DEBUG) {
-          console.log(
-            `[HAPPO] Fetching asset from ${fetchUrl} — storing as ${name}`,
-          );
-        }
-
-        try {
-          const fetchRes = await proxiedFetch(fetchUrl, { retryCount: 5 });
-
-          if (isDynamic || isExternalUrl) {
-            // Add a file suffix so that svg images work
-            name = `${name}${getFileSuffixFromMimeType(
-              fetchRes.headers.get('content-type'),
-            )}`;
-          }
-
-          // decode URI to make sure "%20" and such are converted to the right
-          // chars
-          name = decodeURI(name);
-          archive.append(fetchRes.body, {
+        if (type === 'file') {
+          archive.file(body, {
             name,
             date: FILE_CREATION_DATE,
           });
-          item.name = `/${name}`;
-        } catch (e) {
-          console.log(`[HAPPO] Failed to fetch url ${fetchUrl}`);
-          console.error(e);
+        } else {
+          archive.append(body, {
+            name,
+            date: FILE_CREATION_DATE,
+          });
         }
       }
-    });
+    }
 
-    await Promise.all(promises);
     archive.finalize();
   });
 };
