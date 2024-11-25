@@ -14,15 +14,24 @@ if (HAPPO_DEBUG) {
 
 module.exports = async function fetch(url, { retryCount = 0 }) {
   return asyncRetry(
-    async () => {
+    async (bail) => {
       const response = await nodeFetch(url, fetchOptions);
+
+      if (response.status >= 400 && response.status < 500) {
+        bail(
+          new Error(
+            `[HAPPO] Request to ${url} failed: ${response.status} - ${await response.text()}`,
+          ),
+        );
+        return;
+      }
 
       if (!response.ok) {
         const e = new Error(
           `[HAPPO] Request to ${url} failed: ${response.status} - ${await response.text()}`,
         );
         e.statusCode = response.status;
-        throw e;
+        throw e; // This will be retried
       }
 
       return response;
