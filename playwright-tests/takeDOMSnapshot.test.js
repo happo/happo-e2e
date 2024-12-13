@@ -66,6 +66,7 @@ test('one custom element', async ({ page }) => {
     /<happo-shadow-content style="display: none;"><style>/s,
   );
   expect(snapshot.assetUrls).toEqual([]);
+  expect(snapshot.cssBlocks).toEqual([]);
 });
 
 test('nested custom elements', async ({ page }) => {
@@ -117,6 +118,37 @@ test('nested custom elements', async ({ page }) => {
     {
       url: '/nested-custom-elements/avatar.jpeg',
       baseUrl: 'http://localhost:7700/nested-custom-elements',
+    },
+  ]);
+  expect(snapshot.cssBlocks).toEqual([]);
+});
+
+test('custom element with special stylesheets', async ({ page }) => {
+  await setupPage(page);
+
+  await page.goto('/custom-element-with-special-stylesheets');
+
+  const snapshot = await page.evaluate(() => {
+    return window.happoTakeDOMSnapshot({ doc: document, element: document.body });
+  });
+
+  expect(snapshot.html).toMatch(/<h1>Hello world<\/h1>/s);
+  expect(snapshot.html).toMatch(/<my-element>/s);
+  expect(snapshot.html).toMatch(/<happo-shadow-content style="display: none;">/s);
+
+  expect(snapshot.html).toMatch(/<style data-happo-inlined="true">/s);
+  expect(snapshot.html).toMatch(/h1.*\{.*font-size:.*88px;.*\}/s);
+  expect(snapshot.html).not.toMatch(/:host \{/s);
+
+  // The cssBlocks property collects global stylesheets. Our <link> element
+  // is inside a shadow root, so it should not be included in the cssBlocks.
+  expect(snapshot.cssBlocks).toEqual([]);
+
+  // Instead, it should be included in the assetUrls.
+  expect(snapshot.assetUrls).toEqual([
+    {
+      url: '/custom-element-with-special-stylesheets/style.css',
+      baseUrl: 'http://localhost:7700/custom-element-with-special-stylesheets',
     },
   ]);
 });
