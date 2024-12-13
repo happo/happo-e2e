@@ -36,6 +36,7 @@ jobs:
         env:
           HAPPO_DEBUG: true
 
+      - run: npx playwright install
       - name: Run Playwright tests
         run: yarn test
 
