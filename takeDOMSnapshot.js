@@ -226,6 +226,31 @@ function transformToElementArray(elements, doc) {
   return [elements];
 }
 
+/**
+ * Injects all shadow roots from the given element.
+ *
+ * @param {HTMLElement} element
+ */
+function inlineShadowRoots(element) {
+  const elements = [element];
+
+  const elementsToProcess = [];
+  while (elements.length) {
+    const element = elements.shift();
+    if (element.shadowRoot) {
+      elementsToProcess.unshift(element); // LIFO so that leaf nodes are processed first
+    }
+    elements.unshift(...element.children); // LIFO so that leaf nodes are processed first
+  }
+
+  for (const element of elementsToProcess) {
+    const hiddenElement = document.createElement('happo-shadow-content');
+    hiddenElement.style.display = 'none';
+    hiddenElement.innerHTML = element.shadowRoot.innerHTML;
+    element.appendChild(hiddenElement);
+  }
+}
+
 function takeDOMSnapshot({
   doc,
   element: oneOrMoreElements,
@@ -265,6 +290,8 @@ function takeDOMSnapshot({
       doc.activeElement.setAttribute('data-happo-focus', 'true');
     }
 
+    inlineShadowRoots(element);
+
     assetUrls.push(
       ...getElementAssetUrls(element, {
         doc,
@@ -275,6 +302,9 @@ function takeDOMSnapshot({
     htmlParts.push(element.outerHTML);
     if (canvasCleanup) canvasCleanup();
     if (transformCleanup) transformCleanup();
+
+    // Remove our shadow content elements so that they don't affect the page
+    doc.querySelectorAll('happo-shadow-content').forEach((e) => e.remove());
   }
 
   const cssBlocks = extractCSSBlocks(doc);

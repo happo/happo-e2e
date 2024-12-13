@@ -29,11 +29,15 @@ jobs:
 
       - run: yarn install --frozen-lockfile
       - run: git log --oneline --graph
+      - run: yarn build
 
       - name: Run tests
         run: ./run-tests.sh
         env:
           HAPPO_DEBUG: true
+
+      - name: Run Playwright tests
+        run: yarn test
 
   lint:
     runs-on: ubuntu-latest
