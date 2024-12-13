@@ -2,3 +2,4 @@ node_modules
 browser.build.js
 .DS_Store
 test-package.zip
+test-results

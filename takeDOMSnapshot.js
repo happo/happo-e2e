@@ -11,6 +11,11 @@ function extractCSSBlocks(doc) {
   const styleElements = doc.querySelectorAll(CSS_ELEMENTS_SELECTOR);
 
   styleElements.forEach((element) => {
+    if (element.closest('happo-shadow-content')) {
+      // Skip if element is inside a happo-shadow-content element. These need to
+      // be scoped to the shadow root and cannot be part of the global styles.
+      return;
+    }
     if (element.tagName === 'LINK') {
       // <link href>
       const href = element.href || element.getAttribute('href');
@@ -49,8 +54,13 @@ function getElementAssetUrls(
     }
     const srcset = element.getAttribute('srcset');
     const src = element.getAttribute('src');
-    const href =
+    const imageHref =
       element.tagName.toLowerCase() === 'image' && element.getAttribute('href');
+    const linkHref =
+      element.tagName.toLowerCase() === 'link' &&
+      element.getAttribute('rel') === 'stylesheet' &&
+      element.getAttribute('href');
+
     const style = element.getAttribute('style');
     const base64Url = element._base64Url;
     if (base64Url) {
@@ -75,8 +85,11 @@ function getElementAssetUrls(
         })),
       );
     }
-    if (href) {
-      allUrls.push({ url: href, baseUrl: element.baseURI });
+    if (imageHref) {
+      allUrls.push({ url: imageHref, baseUrl: element.baseURI });
+    }
+    if (linkHref) {
+      allUrls.push({ url: linkHref, baseUrl: element.baseURI });
     }
   });
   return allUrls.filter(({ url }) => !url.startsWith('data:'));
@@ -226,6 +239,43 @@ function transformToElementArray(elements, doc) {
   return [elements];
 }
 
+/**
+ * Injects all shadow roots from the given element.
+ *
+ * @param {HTMLElement} element
+ */
+function inlineShadowRoots(element) {
+  const elements = [element];
+
+  const elementsToProcess = [];
+  while (elements.length) {
+    const element = elements.shift();
+    if (element.shadowRoot) {
+      elementsToProcess.unshift(element); // LIFO so that leaf nodes are processed first
+    }
+    elements.unshift(...element.children); // LIFO so that leaf nodes are processed first
+  }
+
+  for (const element of elementsToProcess) {
+    const hiddenElement = document.createElement('happo-shadow-content');
+    hiddenElement.style.display = 'none';
+
+    // Add adopted stylesheets as <style> elements
+    for (const styleSheet of element.shadowRoot.adoptedStyleSheets) {
+      const styleElement = document.createElement('style');
+      styleElement.setAttribute('data-happo-inlined', 'true');
+      const rules = Array.from(styleSheet.cssRules)
+        .map((rule) => rule.cssText)
+        .join('\n');
+      styleElement.textContent = rules;
+      hiddenElement.appendChild(styleElement);
+    }
+
+    hiddenElement.innerHTML += element.shadowRoot.innerHTML;
+    element.appendChild(hiddenElement);
+  }
+}
+
 function takeDOMSnapshot({
   doc,
   element: oneOrMoreElements,
@@ -265,6 +315,8 @@ function takeDOMSnapshot({
       doc.activeElement.setAttribute('data-happo-focus', 'true');
     }
 
+    inlineShadowRoots(element);
+
     assetUrls.push(
       ...getElementAssetUrls(element, {
         doc,
@@ -280,6 +332,9 @@ function takeDOMSnapshot({
   const cssBlocks = extractCSSBlocks(doc);
   const htmlElementAttrs = extractElementAttributes(doc.documentElement);
   const bodyElementAttrs = extractElementAttributes(doc.body);
+
+  // Remove our shadow content elements so that they don't affect the page
+  doc.querySelectorAll('happo-shadow-content').forEach((e) => e.remove());
 
   return {
     html: htmlParts.join('\n'),
