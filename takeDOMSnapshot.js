@@ -276,6 +276,12 @@ function inlineShadowRoots(element) {
   }
 }
 
+function findSvgElementsWithSymbols(element) {
+  return [...element.ownerDocument.querySelectorAll('svg')].filter((svg) =>
+    svg.querySelector('symbol'),
+  );
+}
+
 function takeDOMSnapshot({
   doc,
   element: oneOrMoreElements,
@@ -325,6 +331,11 @@ function takeDOMSnapshot({
     );
 
     htmlParts.push(element.outerHTML);
+
+    const svgElementsWithSymbols = findSvgElementsWithSymbols(element);
+    for (const svgElement of svgElementsWithSymbols) {
+      htmlParts.push(`<div style="display: none;">${svgElement.outerHTML}</div>`);
+    }
     if (canvasCleanup) canvasCleanup();
     if (transformCleanup) transformCleanup();
   }
