@@ -147,6 +147,22 @@ function testGithubActionsEnvironment() {
     'https://github.com/octo-org/octo-repo/commit/ccddffddccffdd',
   );
   assert.ok(result.message !== undefined);
+
+  // Try with a non-existing event path
+  let caughtError;
+  try {
+    resolveEnvironment({
+      ...githubEnv,
+      GITHUB_EVENT_PATH: 'non-existing-path',
+    });
+  } catch (e) {
+    caughtError = e;
+  }
+  assert.ok(caughtError);
+  assert.equal(
+    caughtError.message,
+    'Failed to load GitHub event from the GITHUB_EVENT_PATH environment variable: "non-existing-path"',
+  );
 }
 
 function testGithubMergeGroupEnvironment() {
