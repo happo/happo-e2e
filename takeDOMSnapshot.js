@@ -33,6 +33,14 @@ function extractCSSBlocks(doc) {
       blocks.push({ content, key, baseUrl: element.baseURI });
     }
   });
+
+  (doc.adoptedStyleSheets || []).forEach((sheet) => {
+    const rules = Array.from(sheet.cssRules)
+      .map((r) => r.cssText)
+      .join('\n');
+    const key = md5(rules).toString();
+    blocks.push({ key, content: rules, baseUrl: sheet.href || document.baseURI });
+  });
   return blocks;
 }
 

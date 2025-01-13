@@ -170,3 +170,32 @@ test('svg sprites', async ({ page }) => {
   expect(snapshot.assetUrls).toEqual([]);
   expect(snapshot.cssBlocks).toEqual([]);
 });
+
+test('constructed styles', async ({ page }) => {
+  await setupPage(page);
+
+  await page.goto('/constructed-styles');
+
+  {
+    const snapshot = await page.evaluate(() => {
+      return window.happoTakeDOMSnapshot({ doc: document, element: document.body });
+    });
+
+    expect(snapshot.html).toMatch(/<p>world<\/p>/s);
+    expect(snapshot.cssBlocks.length).toBe(2);
+    expect(snapshot.cssBlocks[0].content).toEqual('p { color: blue; }');
+    expect(snapshot.cssBlocks[1].content).toEqual('p { color: red; }');
+  }
+
+  // Take another snapshot to make sure that the styles are not duplicated.
+  {
+    const snapshot = await page.evaluate(() => {
+      return window.happoTakeDOMSnapshot({ doc: document, element: document.body });
+    });
+
+    expect(snapshot.html).toMatch(/<h1>Hello<\/h1>/s);
+    expect(snapshot.cssBlocks.length).toBe(2);
+    expect(snapshot.cssBlocks[0].content).toEqual('p { color: blue; }');
+    expect(snapshot.cssBlocks[1].content).toEqual('p { color: red; }');
+  }
+});
