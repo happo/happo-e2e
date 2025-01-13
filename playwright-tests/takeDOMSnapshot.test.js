@@ -152,3 +152,21 @@ test('custom element with special stylesheets', async ({ page }) => {
     },
   ]);
 });
+
+test('svg sprites', async ({ page }) => {
+  await setupPage(page);
+
+  await page.goto('/svg-sprites');
+
+  const snapshot = await page.evaluate(() => {
+    return window.happoTakeDOMSnapshot({
+      doc: document,
+      element: document.querySelector('main'),
+    });
+  });
+
+  expect(snapshot.html).toMatch(/<use xlink:href="#my-icon"/s);
+  expect(snapshot.html).toMatch(/<symbol id="my-icon"/s);
+  expect(snapshot.assetUrls).toEqual([]);
+  expect(snapshot.cssBlocks).toEqual([]);
+});
