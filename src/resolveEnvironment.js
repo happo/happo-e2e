@@ -32,6 +32,17 @@ const envKeys = [
   'SYSTEM_PULLREQUEST_SOURCEREPOSITORYURI',
 ];
 
+function resolveGithubEvent(GITHUB_EVENT_PATH) {
+  try {
+    return require(GITHUB_EVENT_PATH);
+  } catch (e) {
+    throw new Error(
+      `Failed to load GitHub event from the GITHUB_EVENT_PATH environment variable: ${JSON.stringify(GITHUB_EVENT_PATH)}`,
+      { cause: e },
+    );
+  }
+}
+
 function resolveLink(env) {
   const {
     CHANGE_URL,
@@ -67,7 +78,8 @@ function resolveLink(env) {
   }
 
   if (GITHUB_EVENT_PATH) {
-    const ghEvent = require(GITHUB_EVENT_PATH);
+    const ghEvent = resolveGithubEvent(GITHUB_EVENT_PATH);
+
     if (ghEvent.pull_request) {
       return ghEvent.pull_request.html_url;
     }
@@ -120,7 +132,7 @@ function resolveMessage(env) {
     return HAPPO_MESSAGE;
   }
   if (GITHUB_EVENT_PATH) {
-    const ghEvent = require(GITHUB_EVENT_PATH);
+    const ghEvent = resolveGithubEvent(GITHUB_EVENT_PATH);
     if (ghEvent.pull_request) {
       return ghEvent.pull_request.title;
     }
@@ -202,7 +214,7 @@ function resolveBeforeSha(env, afterSha) {
   }
 
   if (GITHUB_EVENT_PATH) {
-    const ghEvent = require(GITHUB_EVENT_PATH);
+    const ghEvent = resolveGithubEvent(GITHUB_EVENT_PATH);
     if (ghEvent.pull_request) {
       return ghEvent.pull_request.base.sha;
     }
@@ -273,7 +285,7 @@ function resolveAfterSha(env) {
     return BUILD_SOURCEVERSION;
   }
   if (GITHUB_EVENT_PATH) {
-    const ghEvent = require(GITHUB_EVENT_PATH);
+    const ghEvent = resolveGithubEvent(GITHUB_EVENT_PATH);
     if (ghEvent.pull_request) {
       return ghEvent.pull_request.head.sha;
     }
