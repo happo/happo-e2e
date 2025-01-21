@@ -1,7 +1,6 @@
 const crypto = require('crypto');
 const fs = require('fs');
 
-const { mkdirp } = require('mkdirp');
 const nodeFetch = require('node-fetch');
 const imageSize = require('image-size');
 const pAll = require('p-all');
@@ -537,7 +536,7 @@ Docs:
     const filename = src.slice(1);
     const filenameB64 = `${filename}.b64`;
     if (isFirst) {
-      await mkdirp('.happo-tmp/_inlined');
+      await fs.promises.mkdir('.happo-tmp/_inlined', { recursive: true });
       await new Promise((resolve, reject) =>
         fs.writeFile(filenameB64, base64Chunk, (e) => {
           if (e) {
