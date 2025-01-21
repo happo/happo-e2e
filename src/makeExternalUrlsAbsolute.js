@@ -1,10 +1,9 @@
 const { URL } = require('url');
-const replaceAll = require('string.prototype.replaceall');
 
 const findCSSAssetUrls = require('./findCSSAssetUrls');
 
 module.exports = function makeExternalUrlsAbsolute(text, absUrl) {
-  return replaceAll(text, findCSSAssetUrls.URL_PATTERN, (full, pre, url, post) => {
+  return text.replaceAll(findCSSAssetUrls.URL_PATTERN, (full, pre, url, post) => {
     if (url.startsWith('data:')) {
       return full;
     }
