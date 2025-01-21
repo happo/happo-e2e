@@ -1,6 +1,6 @@
 {
   "name": "happo-e2e",
-  "version": "3.2.2",
+  "version": "3.3.0",
   "description": "Helpers for e2e integrations with Happo",
   "main": "index.js",
   "repository": "git@github.com:happo/happo-e2e.git",
