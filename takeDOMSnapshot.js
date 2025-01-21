@@ -296,6 +296,7 @@ function takeDOMSnapshot({
   responsiveInlinedCanvases = false,
   transformDOM,
   handleBase64Image,
+  strategy = 'hoist',
 } = {}) {
   const allElements = transformToElementArray(oneOrMoreElements, doc);
   const htmlParts = [];
@@ -338,11 +339,20 @@ function takeDOMSnapshot({
       }),
     );
 
-    htmlParts.push(element.outerHTML);
+    if (strategy === 'hoist') {
+      htmlParts.push(element.outerHTML);
+    } else if (strategy === 'clip') {
+      element.setAttribute('data-happo-clip', 'true');
+      htmlParts.push(doc.body.outerHTML);
+    } else {
+      throw new Error(`Unknown strategy: ${strategy}`);
+    }
 
-    const svgElementsWithSymbols = findSvgElementsWithSymbols(element);
-    for (const svgElement of svgElementsWithSymbols) {
-      htmlParts.push(`<div style="display: none;">${svgElement.outerHTML}</div>`);
+    if (strategy === 'hoist') {
+      const svgElementsWithSymbols = findSvgElementsWithSymbols(element);
+      for (const svgElement of svgElementsWithSymbols) {
+        htmlParts.push(`<div style="display: none;">${svgElement.outerHTML}</div>`);
+      }
     }
     if (canvasCleanup) canvasCleanup();
     if (transformCleanup) transformCleanup();
@@ -354,6 +364,11 @@ function takeDOMSnapshot({
 
   // Remove our shadow content elements so that they don't affect the page
   doc.querySelectorAll('happo-shadow-content').forEach((e) => e.remove());
+  if (strategy === 'clip') {
+    doc
+      .querySelectorAll('[data-happo-clip]')
+      .forEach((e) => e.removeAttribute('data-happo-clip'));
+  }
 
   return {
     html: htmlParts.join('\n'),
