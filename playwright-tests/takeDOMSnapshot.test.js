@@ -171,6 +171,44 @@ test('svg sprites', async ({ page }) => {
   expect(snapshot.cssBlocks).toEqual([]);
 });
 
+test('clip strategy', async ({ page }) => {
+  await setupPage(page);
+
+  await page.goto('/svg-sprites');
+
+  const snapshot = await page.evaluate(() => {
+    return window.happoTakeDOMSnapshot({
+      doc: document,
+      element: document.querySelector('main'),
+      strategy: 'clip',
+    });
+  });
+
+  expect(snapshot.html).toMatch(/<use xlink:href="#my-icon"/s);
+  expect((snapshot.html.match(/<symbol id="my-icon"/g) || []).length).toBe(1);
+  expect(snapshot.html).toMatch(/<body/s);
+  expect(snapshot.html).toMatch(/<\/body>/s);
+  expect(snapshot.html).toMatch(/<main data-happo-clip="true">/s);
+  expect(snapshot.assetUrls).toEqual([]);
+  expect(snapshot.cssBlocks).toEqual([]);
+});
+
+test('unknown strategy', async ({ page }) => {
+  await setupPage(page);
+
+  await page.goto('/svg-sprites');
+
+  await expect(
+    page.evaluate(() => {
+      return window.happoTakeDOMSnapshot({
+        doc: document,
+        element: document.querySelector('main'),
+        strategy: 'foobarbaz',
+      });
+    }),
+  ).rejects.toThrow(/Unknown strategy: foobarbaz/);
+});
+
 test('constructed styles', async ({ page }) => {
   await setupPage(page);
 
