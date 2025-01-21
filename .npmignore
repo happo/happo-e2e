@@ -4,6 +4,8 @@
 .importjs.js
 .node-version
 node_modules
+playwright-tests
+playwright.config.js
 run-tests.sh
 test
 test-fixtures
