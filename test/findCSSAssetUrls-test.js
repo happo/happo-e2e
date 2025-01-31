@@ -1,13 +1,12 @@
-const { describe, it } = require('node:test');
+const { it } = require('node:test');
 const assert = require('assert');
 
 const findCSSAssetUrls = require('../src/findCSSAssetUrls');
 
-describe('findCSSAssetUrls', () => {
-  it('finds asset urls in CSS', () => {
-    assert.deepEqual(
-      findCSSAssetUrls(
-        `
+it('finds asset urls in CSS', () => {
+  assert.deepEqual(
+    findCSSAssetUrls(
+      `
         .foo {
           background-image: url("/bar.png");
         }
@@ -20,8 +19,7 @@ describe('findCSSAssetUrls', () => {
           background: url(data:image/png;base64,asdfasdfasfd);
         }
       `.trim(),
-      ),
-      ['/bar.png', '/fonts/myfont.woff2', '/fonts/myfont.woff'],
-    );
-  });
+    ),
+    ['/bar.png', '/fonts/myfont.woff2', '/fonts/myfont.woff'],
+  );
 });

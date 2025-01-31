@@ -1,4 +1,4 @@
-const { describe, it, before, after } = require('node:test');
+const { it, before, after } = require('node:test');
 const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
@@ -30,15 +30,13 @@ after(() => {
   fs.unlinkSync(mockHappoConfigPath);
 });
 
-describe('Controller', () => {
-  it('initializes with the correct happo config', async () => {
-    const controller = new Controller();
-    await controller.init();
-    assert.strictEqual(controller.happoConfig.apiKey, mockHappoConfig.apiKey);
-    assert.strictEqual(controller.happoConfig.apiSecret, mockHappoConfig.apiSecret);
-    assert.strictEqual(controller.happoConfig.project, mockHappoConfig.project);
-    assert.deepStrictEqual(controller.snapshots, []);
-    assert.deepStrictEqual(controller.snapshotAssetUrls, []);
-    assert.deepStrictEqual(controller.allCssBlocks, []);
-  });
+it('initializes with the correct happo config', async () => {
+  const controller = new Controller();
+  await controller.init();
+  assert.strictEqual(controller.happoConfig.apiKey, mockHappoConfig.apiKey);
+  assert.strictEqual(controller.happoConfig.apiSecret, mockHappoConfig.apiSecret);
+  assert.strictEqual(controller.happoConfig.project, mockHappoConfig.project);
+  assert.deepStrictEqual(controller.snapshots, []);
+  assert.deepStrictEqual(controller.snapshotAssetUrls, []);
+  assert.deepStrictEqual(controller.allCssBlocks, []);
 });
