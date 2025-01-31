@@ -1,11 +1,13 @@
+const { describe, it } = require('node:test');
 const assert = require('assert');
 
 const findCSSAssetUrls = require('../src/findCSSAssetUrls');
 
-function runTest() {
-  assert.deepEqual(
-    findCSSAssetUrls(
-      `
+describe('findCSSAssetUrls', () => {
+  it('finds asset urls in CSS', () => {
+    assert.deepEqual(
+      findCSSAssetUrls(
+        `
         .foo {
           background-image: url("/bar.png");
         }
@@ -18,10 +20,8 @@ function runTest() {
           background: url(data:image/png;base64,asdfasdfasfd);
         }
       `.trim(),
-    ),
-    ['/bar.png', '/fonts/myfont.woff2', '/fonts/myfont.woff'],
-  );
-}
-
-runTest();
-console.log('All findCSSAssetUrls tests passed');
+      ),
+      ['/bar.png', '/fonts/myfont.woff2', '/fonts/myfont.woff'],
+    );
+  });
+});

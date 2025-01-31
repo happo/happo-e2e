@@ -1,3 +1,4 @@
+const { describe, it } = require('node:test');
 const assert = require('assert');
 const fs = require('fs');
 
@@ -32,30 +33,25 @@ async function wrap(func) {
   }
 }
 
-async function runTest() {
-  await wrap(async () => {
-    const pkg = await createAssetPackage([
-      {
-        url: '/sub%20folder/countries-bg.jpeg',
-        baseUrl: 'http://localhost:3412',
-      },
-      {
-        url: 'http://localhost:3412/sub%20folder/countries-bg.jpeg',
-        baseUrl: 'http://localhost:3412',
-      },
-      {
-        url: 'http://localhost:3412/foo.html',
-        baseUrl: 'http://localhost:3412',
-      },
-    ]);
-    assert.equal(pkg.hash, '898862aad00d429b73f57256332a6ee1');
-    return pkg;
+describe('createAssetPackage', () => {
+  it('creates an asset package', async () => {
+    await wrap(async () => {
+      const pkg = await createAssetPackage([
+        {
+          url: '/sub%20folder/countries-bg.jpeg',
+          baseUrl: 'http://localhost:3412',
+        },
+        {
+          url: 'http://localhost:3412/sub%20folder/countries-bg.jpeg',
+          baseUrl: 'http://localhost:3412',
+        },
+        {
+          url: 'http://localhost:3412/foo.html',
+          baseUrl: 'http://localhost:3412',
+        },
+      ]);
+      assert.equal(pkg.hash, '898862aad00d429b73f57256332a6ee1');
+      return pkg;
+    });
   });
-}
-
-runTest()
-  .then(() => process.exit(0))
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  });
+});

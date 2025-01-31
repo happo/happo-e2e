@@ -1,3 +1,4 @@
+const { describe, it, before, after } = require('node:test');
 const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
@@ -14,37 +15,30 @@ const mockHappoConfig = {
   },
 };
 
-async function runTest() {
-  // Test for init
-  const controller = new Controller();
-  await controller.init();
-  assert.strictEqual(controller.happoConfig.apiKey, mockHappoConfig.apiKey);
-  assert.strictEqual(controller.happoConfig.apiSecret, mockHappoConfig.apiSecret);
-  assert.strictEqual(controller.happoConfig.project, mockHappoConfig.project);
-  assert.deepStrictEqual(controller.snapshots, []);
-  assert.deepStrictEqual(controller.snapshotAssetUrls, []);
-  assert.deepStrictEqual(controller.allCssBlocks, []);
-}
+const mockHappoConfigPath = path.join(__dirname, '..', '.happo.js');
 
-async function main() {
-  const mockHappoConfigPath = path.join(__dirname, '..', '.happo.js');
-  try {
-    // Create a mock happo.js file
-    fs.writeFileSync(
-      mockHappoConfigPath,
-      `module.exports = ${JSON.stringify(mockHappoConfig)}`,
-    );
+before(() => {
+  // Create a mock happo.js file
+  fs.writeFileSync(
+    mockHappoConfigPath,
+    `module.exports = ${JSON.stringify(mockHappoConfig)}`,
+  );
+});
 
-    await runTest();
+after(() => {
+  // Clean up the mock config
+  fs.unlinkSync(mockHappoConfigPath);
+});
 
-    console.log('All Controller tests passed');
-  } catch (error) {
-    console.error('Controller tests failed:', error);
-    process.exitCode = 1;
-  } finally {
-    // Clean up the mock config
-    fs.unlinkSync(mockHappoConfigPath);
-  }
-}
-
-main();
+describe('Controller', () => {
+  it('initializes with the correct happo config', async () => {
+    const controller = new Controller();
+    await controller.init();
+    assert.strictEqual(controller.happoConfig.apiKey, mockHappoConfig.apiKey);
+    assert.strictEqual(controller.happoConfig.apiSecret, mockHappoConfig.apiSecret);
+    assert.strictEqual(controller.happoConfig.project, mockHappoConfig.project);
+    assert.deepStrictEqual(controller.snapshots, []);
+    assert.deepStrictEqual(controller.snapshotAssetUrls, []);
+    assert.deepStrictEqual(controller.allCssBlocks, []);
+  });
+});
