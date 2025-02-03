@@ -1,14 +1,15 @@
-const { it } = require('node:test');
+const { describe, it } = require('node:test');
 const assert = require('assert');
 
 const makeExternalUrlsAbsolute = require('../src/makeExternalUrlsAbsolute');
 
 const resourceUrl = 'https://base.url/styles/styles.min.css';
 
-it('updates urls', () => {
-  assert.equal(
-    makeExternalUrlsAbsolute(
-      `
+describe('makeExternalUrlsAbsolute', () => {
+  it('updates urls', () => {
+    assert.equal(
+      makeExternalUrlsAbsolute(
+        `
           .foo {
             background-image: url("/bar.png");
           }
@@ -25,9 +26,9 @@ it('updates urls', () => {
             background-image: url(two.png);
           }
         `.trim(),
-      resourceUrl,
-    ),
-    `
+        resourceUrl,
+      ),
+      `
           .foo {
             background-image: url("https://base.url/bar.png");
           }
@@ -44,9 +45,10 @@ it('updates urls', () => {
             background-image: url(https://base.url/styles/two.png);
           }
         `.trim(),
-  );
-});
+    );
+  });
 
-it('can deal with empty input', () => {
-  assert.equal(makeExternalUrlsAbsolute('', resourceUrl), '');
+  it('can deal with empty input', () => {
+    assert.equal(makeExternalUrlsAbsolute('', resourceUrl), '');
+  });
 });

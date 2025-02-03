@@ -1,12 +1,13 @@
-const { it } = require('node:test');
+const { describe, it } = require('node:test');
 const assert = require('assert');
 const jsdom = require('jsdom');
 
 const takeDOMSnapshot = require('../takeDOMSnapshot');
 
-it('takes a basic snapshot', () => {
-  const { JSDOM } = jsdom;
-  const dom = new JSDOM(`
+describe('takeDOMSnapshot', () => {
+  it('takes a basic snapshot', () => {
+    const { JSDOM } = jsdom;
+    const dom = new JSDOM(`
 <!DOCTYPE html>
 <html class="page">
   <body data-something="foo">
@@ -14,17 +15,17 @@ it('takes a basic snapshot', () => {
   </body>
 </html>
   `);
-  const { document: doc } = dom.window;
-  const element = doc.querySelector('main');
-  const snapshot = takeDOMSnapshot({ doc, element });
-  assert.equal(snapshot.html, '<main>Hello world</main>');
-  assert.deepEqual(snapshot.htmlElementAttrs, { class: 'page' });
-  assert.deepEqual(snapshot.bodyElementAttrs, { 'data-something': 'foo' });
-});
+    const { document: doc } = dom.window;
+    const element = doc.querySelector('main');
+    const snapshot = takeDOMSnapshot({ doc, element });
+    assert.equal(snapshot.html, '<main>Hello world</main>');
+    assert.deepEqual(snapshot.htmlElementAttrs, { class: 'page' });
+    assert.deepEqual(snapshot.bodyElementAttrs, { 'data-something': 'foo' });
+  });
 
-it('works with data-happo-focus', () => {
-  const { JSDOM } = jsdom;
-  const dom = new JSDOM(`
+  it('works with data-happo-focus', () => {
+    const { JSDOM } = jsdom;
+    const dom = new JSDOM(`
 <!DOCTYPE html>
 <html>
   <body>
@@ -35,35 +36,35 @@ it('works with data-happo-focus', () => {
   </body>
 </html>
   `);
-  const { document: doc } = dom.window;
-  const element = doc.querySelector('main');
-  let snapshot = takeDOMSnapshot({ doc, element });
-  assert.equal(
-    snapshot.html.trim(),
-    `
+    const { document: doc } = dom.window;
+    const element = doc.querySelector('main');
+    let snapshot = takeDOMSnapshot({ doc, element });
+    assert.equal(
+      snapshot.html.trim(),
+      `
     <main>
       <input type="text" name="name">
       <input type="checkbox">
     </main>
   `.trim(),
-  );
+    );
 
-  element.querySelector('input').focus();
-  snapshot = takeDOMSnapshot({ doc, element });
-  assert.equal(
-    snapshot.html.trim(),
-    `
+    element.querySelector('input').focus();
+    snapshot = takeDOMSnapshot({ doc, element });
+    assert.equal(
+      snapshot.html.trim(),
+      `
     <main>
       <input type="text" name="name" data-happo-focus="true">
       <input type="checkbox">
     </main>
   `.trim(),
-  );
-});
+    );
+  });
 
-it('works with multiple elements', () => {
-  const { JSDOM } = jsdom;
-  const dom = new JSDOM(`
+  it('works with multiple elements', () => {
+    const { JSDOM } = jsdom;
+    const dom = new JSDOM(`
 <!DOCTYPE html>
 <html>
   <body>
@@ -72,20 +73,20 @@ it('works with multiple elements', () => {
   </body>
 </html>
   `);
-  const { document: doc } = dom.window;
-  const element = doc.querySelectorAll('button');
-  let snapshot = takeDOMSnapshot({ doc, element });
-  assert.equal(
-    snapshot.html.trim(),
-    `
+    const { document: doc } = dom.window;
+    const element = doc.querySelectorAll('button');
+    let snapshot = takeDOMSnapshot({ doc, element });
+    assert.equal(
+      snapshot.html.trim(),
+      `
   <button>Hello</button>\n<button>World</button>
   `.trim(),
-  );
-});
+    );
+  });
 
-it('works with assets', () => {
-  const { JSDOM } = jsdom;
-  const dom = new JSDOM(`
+  it('works with assets', () => {
+    const { JSDOM } = jsdom;
+    const dom = new JSDOM(`
 <!DOCTYPE html>
 <html>
   <head>
@@ -100,21 +101,21 @@ it('works with assets', () => {
   </body>
 </html>
   `);
-  const { document: doc } = dom.window;
-  const element = doc.querySelector('body');
-  let snapshot = takeDOMSnapshot({ doc, element });
-  assert.equal(snapshot.assetUrls.length, 3);
-  assert.equal(snapshot.assetUrls[0].url, '/hello.png');
-  assert.equal(snapshot.assetUrls[1].url, '/world.png');
-  assert.equal(snapshot.assetUrls[2].url, '../inside-svg.png');
-  assert.equal(snapshot.cssBlocks.length, 1);
-  assert.equal(snapshot.cssBlocks[0].href, '/foobar.css');
-  assert.equal(snapshot.cssBlocks[0].baseUrl, 'about:blank');
-});
+    const { document: doc } = dom.window;
+    const element = doc.querySelector('body');
+    let snapshot = takeDOMSnapshot({ doc, element });
+    assert.equal(snapshot.assetUrls.length, 3);
+    assert.equal(snapshot.assetUrls[0].url, '/hello.png');
+    assert.equal(snapshot.assetUrls[1].url, '/world.png');
+    assert.equal(snapshot.assetUrls[2].url, '../inside-svg.png');
+    assert.equal(snapshot.cssBlocks.length, 1);
+    assert.equal(snapshot.cssBlocks[0].href, '/foobar.css');
+    assert.equal(snapshot.cssBlocks[0].baseUrl, 'about:blank');
+  });
 
-it('works with radio and checkbox', () => {
-  const { JSDOM } = jsdom;
-  const dom = new JSDOM(`
+  it('works with radio and checkbox', () => {
+    const { JSDOM } = jsdom;
+    const dom = new JSDOM(`
 <!DOCTYPE html>
 <html>
   <body>
@@ -129,14 +130,14 @@ it('works with radio and checkbox', () => {
   </body>
 </html>
   `);
-  const { document: doc } = dom.window;
-  doc.querySelector('input[type="radio"][value="a"]').checked = true;
-  doc.querySelector('input[type="checkbox"][name="baz"]').checked = true;
-  const element = doc.querySelector('form');
-  const snapshot = takeDOMSnapshot({ doc, element });
-  assert.equal(
-    snapshot.html,
-    `
+    const { document: doc } = dom.window;
+    doc.querySelector('input[type="radio"][value="a"]').checked = true;
+    doc.querySelector('input[type="checkbox"][name="baz"]').checked = true;
+    const element = doc.querySelector('form');
+    const snapshot = takeDOMSnapshot({ doc, element });
+    assert.equal(
+      snapshot.html,
+      `
     <form>
       <input type="radio" name="foo" value="a" checked="checked">
       <input type="radio" name="foo" value="b">
@@ -146,5 +147,6 @@ it('works with radio and checkbox', () => {
       <input type="checkbox" name="car">
     </form>
   `.trim(),
-  );
+    );
+  });
 });
