@@ -49,6 +49,28 @@ test('regular elements', async ({ page }) => {
       baseUrl: 'http://localhost:7700/regular-elements',
     },
   ]);
+
+  expect(snapshot.cssBlocks).toEqual([]);
+});
+
+test('style collection', async ({ page }) => {
+  await setupPage(page);
+
+  await page.goto('/style-collection');
+
+  const snapshot = await page.evaluate(() => {
+    return window.happoTakeDOMSnapshot({ doc: document, element: document.body });
+  });
+
+  expect(snapshot.cssBlocks.length).toBe(2);
+  expect(snapshot.cssBlocks[0].content).toMatch(/font-weight: 400;/);
+  expect(snapshot.cssBlocks[0].content).toMatch(/font: 400 1rem/);
+  expect(snapshot.cssBlocks[0].content).toMatch(/font: var\(--font\)/);
+  expect(snapshot.cssBlocks[0].content).toMatch(
+    /font-weight: var\(--font-weight\);/,
+  );
+
+  expect(snapshot.cssBlocks[1].content).toMatch(/color: yellow;/);
 });
 
 test('one custom element', async ({ page }) => {

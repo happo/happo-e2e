@@ -6,6 +6,25 @@ const findCSSAssetUrls = require('./src/findCSSAssetUrls');
 const CSS_ELEMENTS_SELECTOR = 'style,link[rel="stylesheet"][href]';
 const COMMENT_PATTERN = /^\/\*.+\*\/$/;
 
+function getContentFromStyleSheet(styleSheet) {
+  return (
+    Array.from(styleSheet.cssRules)
+      .map((rule) => rule.cssText)
+      // Filter out those lines that are comments (these are often source
+      // mappings)
+      .filter((line) => !COMMENT_PATTERN.test(line))
+      .join('\n')
+  );
+}
+
+function stripComments(content) {
+  return content
+    .split('\n')
+    .map((line) => line.trim())
+    .filter((line) => line && !COMMENT_PATTERN.test(line))
+    .join(' ');
+}
+
 function extractCSSBlocks(doc) {
   const blocks = [];
   const styleElements = doc.querySelectorAll(CSS_ELEMENTS_SELECTOR);
@@ -21,13 +40,9 @@ function extractCSSBlocks(doc) {
       const href = element.href || element.getAttribute('href');
       blocks.push({ key: href, href, baseUrl: element.baseURI });
     } else {
-      // <style>
-      const lines = Array.from(element.sheet.cssRules).map((r) => r.cssText);
-
-      // Filter out those lines that are comments (these are often source
-      // mappings)
-      const content = lines.filter((line) => !COMMENT_PATTERN.test(line)).join('\n');
-
+      const content = element.textContent
+        ? stripComments(element.textContent)
+        : getContentFromStyleSheet(element.sheet);
       // Create a hash so that we can dedupe equal styles
       const key = md5(content).toString();
       blocks.push({ content, key, baseUrl: element.baseURI });
@@ -35,11 +50,9 @@ function extractCSSBlocks(doc) {
   });
 
   (doc.adoptedStyleSheets || []).forEach((sheet) => {
-    const rules = Array.from(sheet.cssRules)
-      .map((r) => r.cssText)
-      .join('\n');
-    const key = md5(rules).toString();
-    blocks.push({ key, content: rules, baseUrl: sheet.href || document.baseURI });
+    const content = getContentFromStyleSheet(sheet);
+    const key = md5(content).toString();
+    blocks.push({ key, content, baseUrl: sheet.href || document.baseURI });
   });
   return blocks;
 }
@@ -272,10 +285,8 @@ function inlineShadowRoots(element) {
     for (const styleSheet of element.shadowRoot.adoptedStyleSheets) {
       const styleElement = document.createElement('style');
       styleElement.setAttribute('data-happo-inlined', 'true');
-      const rules = Array.from(styleSheet.cssRules)
-        .map((rule) => rule.cssText)
-        .join('\n');
-      styleElement.textContent = rules;
+      const styleContent = getContentFromStyleSheet(styleSheet);
+      styleElement.textContent = styleContent;
       hiddenElement.appendChild(styleElement);
     }
 
