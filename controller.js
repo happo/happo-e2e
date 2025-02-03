@@ -18,8 +18,6 @@ const makeExternalUrlsAbsolute = require('./src/makeExternalUrlsAbsolute');
 const resolveEnvironment = require('./src/resolveEnvironment');
 const convertBase64FileToReal = require('./src/convertBase64FileToReal');
 
-const { HAPPO_E2E_PORT, HAPPO_DEBUG, HAPPO_ENABLED } = process.env;
-
 function getUniqueUrls(urls) {
   const seenKeys = new Set();
   const result = [];
@@ -38,6 +36,8 @@ function ampersands(string) {
 }
 
 async function downloadCSSContent(blocks) {
+  const { HAPPO_DEBUG } = process.env;
+
   const actions = blocks.map((block) => async () => {
     if (block.href) {
       const absUrl = makeAbsolute(block.href, block.baseUrl);
@@ -83,6 +83,13 @@ class Controller {
     this.localSnapshots = [];
     this.localSnapshotImages = {};
     this.knownComponentVariants = {};
+    this.happoDebug = false;
+
+    const { HAPPO_E2E_PORT, HAPPO_ENABLED, HAPPO_DEBUG } = process.env;
+
+    if (HAPPO_DEBUG) {
+      this.happoDebug = true;
+    }
 
     if (!(HAPPO_E2E_PORT || HAPPO_ENABLED)) {
       console.log(
@@ -98,7 +105,7 @@ Docs:
       );
       return null;
     }
-    if (HAPPO_DEBUG) {
+    if (this.happoDebug) {
       console.log('[HAPPO] Running Controller.init');
     }
     this.happoConfig = await loadHappoConfig();
@@ -106,14 +113,14 @@ Docs:
 
   isActive() {
     const result = !!this.happoConfig;
-    if (HAPPO_DEBUG) {
+    if (this.happoDebug) {
       console.log('[HAPPO] Controller.isActive()?', result);
     }
     return result;
   }
 
   async uploadAssetsIfNeeded({ buffer, hash }) {
-    if (HAPPO_DEBUG) {
+    if (this.happoDebug) {
       console.log(`[HAPPO] Checking if we need to upload assets`);
     }
 
@@ -127,7 +134,7 @@ Docs:
         },
         { ...this.happoConfig },
       );
-      if (HAPPO_DEBUG) {
+      if (this.happoDebug) {
         console.log(
           `[HAPPO] Reusing existing assets at ${assetsDataRes.path} (previously uploaded on ${assetsDataRes.uploadedAt})`,
         );
@@ -139,7 +146,7 @@ Docs:
       }
     }
 
-    if (HAPPO_DEBUG) {
+    if (this.happoDebug) {
       console.log(`[HAPPO] Uploading assets package`);
     }
     const assetsRes = await makeRequest(
@@ -159,18 +166,18 @@ Docs:
       },
       { ...this.happoConfig, maxTries: 3 },
     );
-    if (HAPPO_DEBUG) {
+    if (this.happoDebug) {
       console.log('[HAPPO] Done uploading assets package, got', assetsRes);
     }
     return assetsRes.path;
   }
 
   async finish() {
-    if (HAPPO_DEBUG) {
+    if (this.happoDebug) {
       console.log('[HAPPO] Running Controller.finish');
     }
     if (this.localSnapshots.length) {
-      if (HAPPO_DEBUG) {
+      if (this.happoDebug) {
         console.log(
           `[HAPPO] Processing ${this.localSnapshots.length} local snapshots`,
         );
@@ -179,7 +186,7 @@ Docs:
       return null;
     }
     if (!this.snapshots.length) {
-      if (HAPPO_DEBUG) {
+      if (this.happoDebug) {
         console.log('[HAPPO] No snapshots recorded');
       }
       return null;
@@ -221,14 +228,14 @@ Docs:
     }
     const allRequestIds = [];
     for (const name of Object.keys(this.happoConfig.targets)) {
-      if (HAPPO_DEBUG) {
+      if (this.happoDebug) {
         console.log(`[HAPPO] Sending snap-request(s) for target=${name}`);
       }
       const snapshotsForTarget = this.snapshots.filter(
         ({ targets }) => !targets || targets.includes(name),
       );
       if (!snapshotsForTarget.length) {
-        if (HAPPO_DEBUG) {
+        if (this.happoDebug) {
           console.log(`[HAPPO] No snapshots recorded for target=${name}. Skipping.`);
         }
         continue;
@@ -244,7 +251,7 @@ Docs:
         apiKey: this.happoConfig.apiKey,
         apiSecret: this.happoConfig.apiSecret,
       });
-      if (HAPPO_DEBUG) {
+      if (this.happoDebug) {
         console.log(
           `[HAPPO] Snap-request(s) for target=${name} created with ID(s)=${requestIds.join(
             ',',
@@ -274,7 +281,7 @@ Docs:
       throw new Error('Missing `variant`');
     }
 
-    if (HAPPO_DEBUG) {
+    if (this.happoDebug) {
       console.log(`[HAPPO] Registering snapshot for ${component} > ${variant}`);
     }
     this.snapshotAssetUrls.push(...assetUrls);
@@ -329,7 +336,7 @@ Docs:
   }
 
   removeSnapshotsMadeBetween({ start, end }) {
-    if (HAPPO_DEBUG) {
+    if (this.happoDebug) {
       console.log(
         `[HAPPO] Removing snapshots made between ${new Date(
           start,
@@ -345,7 +352,7 @@ Docs:
   }
 
   removeDuplicatesInTimeframe({ start, end }) {
-    if (HAPPO_DEBUG) {
+    if (this.happoDebug) {
       console.log(
         `[HAPPO] Removing duplicate snapshots made between ${new Date(
           start,
@@ -363,7 +370,7 @@ Docs:
       if (inTimeframe) {
         if (seenSnapshots[id]) {
           // Found a duplicate made in the timeframe specified
-          if (HAPPO_DEBUG) {
+          if (this.happoDebug) {
             console.log(
               `[HAPPO] Found duplicate snapshot to remove: "${component}", "${variant}" at timestamp ${new Date(
                 timestamp,
@@ -379,6 +386,8 @@ Docs:
   }
 
   async processSnapRequestIds(allRequestIds) {
+    const { HAPPO_E2E_PORT } = process.env;
+
     if (HAPPO_E2E_PORT) {
       // We're running with `happo-cypress --`
       const fetchRes = await nodeFetch(`http://localhost:${HAPPO_E2E_PORT}/`, {
@@ -449,7 +458,7 @@ Docs:
   }
   async uploadImage(pathOrBuffer) {
     const pathToFile = Buffer.isBuffer(pathOrBuffer) ? undefined : pathOrBuffer;
-    if (HAPPO_DEBUG) {
+    if (this.happoDebug) {
       console.log(`[HAPPO] Uploading image ${pathToFile || ''}`);
     }
     const buffer = pathToFile
@@ -468,7 +477,7 @@ Docs:
 
     if (!uploadUrlResult.uploadUrl) {
       // image has already been uploaded
-      if (HAPPO_DEBUG) {
+      if (this.happoDebug) {
         console.log(
           `[HAPPO] Image has already been uploaded: ${uploadUrlResult.url}`,
         );
@@ -493,7 +502,7 @@ Docs:
       },
       { ...this.happoConfig, maxTries: 2 },
     );
-    if (HAPPO_DEBUG) {
+    if (this.happoDebug) {
       console.log(`[HAPPO] Uploaded image: ${uploadUrlResult.url}`);
     }
     return uploadResult.url;
