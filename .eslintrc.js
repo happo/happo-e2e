@@ -19,7 +19,7 @@ module.exports = {
   ignorePatterns: ['pages/'],
   parserOptions: {
     sourceType: 'module',
-    ecmaVersion: 2018,
+    ecmaVersion: 2020,
   },
   rules: {
     'no-use-before-define': 2,

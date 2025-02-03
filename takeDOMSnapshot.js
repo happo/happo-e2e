@@ -6,23 +6,23 @@ const findCSSAssetUrls = require('./src/findCSSAssetUrls');
 const CSS_ELEMENTS_SELECTOR = 'style,link[rel="stylesheet"][href]';
 const COMMENT_PATTERN = /^\/\*.+\*\/$/;
 
-function getContentFromStyleSheet(styleSheet) {
-  return (
-    Array.from(styleSheet.cssRules)
-      .map((rule) => rule.cssText)
-      // Filter out those lines that are comments (these are often source
-      // mappings)
-      .filter((line) => !COMMENT_PATTERN.test(line))
-      .join('\n')
-  );
-}
+function getContentFromStyleSheet(element) {
+  let lines;
 
-function stripComments(content) {
-  return content
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line && !COMMENT_PATTERN.test(line))
-    .join(' ');
+  if (element.textContent) {
+    // Handle <style> elements with direct textContent
+    lines = element.textContent.split('\n').map((line) => line.trim());
+  } else if (element.sheet?.cssRules) {
+    // Handle <style> or <link> elements that have a sheet property
+    lines = Array.from(element.sheet.cssRules).map((rule) => rule.cssText);
+  } else if (element.cssRules) {
+    // Handle CSSStyleSheet objects (including adoptedStyleSheets)
+    lines = Array.from(element.cssRules).map((rule) => rule.cssText);
+  } else {
+    return '';
+  }
+
+  return lines.filter((line) => line && !COMMENT_PATTERN.test(line)).join('\n');
 }
 
 function extractCSSBlocks(doc) {
@@ -40,9 +40,7 @@ function extractCSSBlocks(doc) {
       const href = element.href || element.getAttribute('href');
       blocks.push({ key: href, href, baseUrl: element.baseURI });
     } else {
-      const content = element.textContent
-        ? stripComments(element.textContent)
-        : getContentFromStyleSheet(element.sheet);
+      const content = getContentFromStyleSheet(element);
       // Create a hash so that we can dedupe equal styles
       const key = md5(content).toString();
       blocks.push({ content, key, baseUrl: element.baseURI });
