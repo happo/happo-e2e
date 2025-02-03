@@ -1,3 +1,4 @@
+const { it } = require('node:test');
 const assert = require('assert');
 const fs = require('fs');
 
@@ -32,7 +33,7 @@ async function wrap(func) {
   }
 }
 
-async function runTest() {
+it('creates an asset package', async () => {
   await wrap(async () => {
     const pkg = await createAssetPackage([
       {
@@ -51,11 +52,4 @@ async function runTest() {
     assert.equal(pkg.hash, '898862aad00d429b73f57256332a6ee1');
     return pkg;
   });
-}
-
-runTest()
-  .then(() => process.exit(0))
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  });
+});

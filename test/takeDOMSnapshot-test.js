@@ -1,9 +1,10 @@
+const { it } = require('node:test');
 const assert = require('assert');
 const jsdom = require('jsdom');
 
 const takeDOMSnapshot = require('../takeDOMSnapshot');
 
-function runBasicTest() {
+it('takes a basic snapshot', () => {
   const { JSDOM } = jsdom;
   const dom = new JSDOM(`
 <!DOCTYPE html>
@@ -19,9 +20,9 @@ function runBasicTest() {
   assert.equal(snapshot.html, '<main>Hello world</main>');
   assert.deepEqual(snapshot.htmlElementAttrs, { class: 'page' });
   assert.deepEqual(snapshot.bodyElementAttrs, { 'data-something': 'foo' });
-}
+});
 
-function runFocusTest() {
+it('works with data-happo-focus', () => {
   const { JSDOM } = jsdom;
   const dom = new JSDOM(`
 <!DOCTYPE html>
@@ -58,9 +59,9 @@ function runFocusTest() {
     </main>
   `.trim(),
   );
-}
+});
 
-function runMultiElementTest() {
+it('works with multiple elements', () => {
   const { JSDOM } = jsdom;
   const dom = new JSDOM(`
 <!DOCTYPE html>
@@ -80,9 +81,9 @@ function runMultiElementTest() {
   <button>Hello</button>\n<button>World</button>
   `.trim(),
   );
-}
+});
 
-function runAssetsTest() {
+it('works with assets', () => {
   const { JSDOM } = jsdom;
   const dom = new JSDOM(`
 <!DOCTYPE html>
@@ -109,9 +110,9 @@ function runAssetsTest() {
   assert.equal(snapshot.cssBlocks.length, 1);
   assert.equal(snapshot.cssBlocks[0].href, '/foobar.css');
   assert.equal(snapshot.cssBlocks[0].baseUrl, 'about:blank');
-}
+});
 
-function runRadioAndCheckboxTest() {
+it('works with radio and checkbox', () => {
   const { JSDOM } = jsdom;
   const dom = new JSDOM(`
 <!DOCTYPE html>
@@ -146,15 +147,4 @@ function runRadioAndCheckboxTest() {
     </form>
   `.trim(),
   );
-}
-
-function runTest() {
-  runBasicTest();
-  runFocusTest();
-  runMultiElementTest();
-  runAssetsTest();
-  runRadioAndCheckboxTest();
-}
-
-runTest();
-console.log('All transformDOM tests passed');
+});

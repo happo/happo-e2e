@@ -1,3 +1,4 @@
+const { it, before, after } = require('node:test');
 const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
@@ -14,8 +15,22 @@ const mockHappoConfig = {
   },
 };
 
-async function runTest() {
-  // Test for init
+const mockHappoConfigPath = path.join(__dirname, '..', '.happo.js');
+
+before(() => {
+  // Create a mock happo.js file
+  fs.writeFileSync(
+    mockHappoConfigPath,
+    `module.exports = ${JSON.stringify(mockHappoConfig)}`,
+  );
+});
+
+after(() => {
+  // Clean up the mock config
+  fs.unlinkSync(mockHappoConfigPath);
+});
+
+it('initializes with the correct happo config', async () => {
   const controller = new Controller();
   await controller.init();
   assert.strictEqual(controller.happoConfig.apiKey, mockHappoConfig.apiKey);
@@ -24,27 +39,4 @@ async function runTest() {
   assert.deepStrictEqual(controller.snapshots, []);
   assert.deepStrictEqual(controller.snapshotAssetUrls, []);
   assert.deepStrictEqual(controller.allCssBlocks, []);
-}
-
-async function main() {
-  const mockHappoConfigPath = path.join(__dirname, '..', '.happo.js');
-  try {
-    // Create a mock happo.js file
-    fs.writeFileSync(
-      mockHappoConfigPath,
-      `module.exports = ${JSON.stringify(mockHappoConfig)}`,
-    );
-
-    await runTest();
-
-    console.log('All Controller tests passed');
-  } catch (error) {
-    console.error('Controller tests failed:', error);
-    process.exitCode = 1;
-  } finally {
-    // Clean up the mock config
-    fs.unlinkSync(mockHappoConfigPath);
-  }
-}
-
-main();
+});

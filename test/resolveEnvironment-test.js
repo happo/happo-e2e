@@ -1,16 +1,17 @@
+const { it } = require('node:test');
 const path = require('path');
 const assert = require('assert');
 const resolveEnvironment = require('../src/resolveEnvironment');
 
-function testDevEnv() {
+it('resolves the dev environment', () => {
   const result = resolveEnvironment({});
   assert.equal(result.beforeSha, '__LATEST__');
   assert.ok(/^dev-[a-z0-9]+$/.test(result.afterSha));
   assert.equal(result.link, undefined);
   assert.equal(result.message, undefined);
-}
+});
 
-function testCircleCIEnv() {
+it('resolves the CircleCI environment', () => {
   const circleEnv = {
     CI_PULL_REQUEST: 'https://ghe.com/foo/bar/pull/12',
     CIRCLE_PROJECT_USERNAME: 'happo',
@@ -43,9 +44,9 @@ function testCircleCIEnv() {
   assert.equal(result.afterSha, 'abcdef');
   assert.equal(result.link, 'https://github.com/happo/happo-view/commit/abcdef');
   assert.ok(result.message !== undefined);
-}
+});
 
-function testAzureEnv() {
+it('resolves the Azure environment', () => {
   const azureEnv = {
     BUILD_SOURCEVERSION: '25826448f15ebcb939804ca769a00ee1df08e10d',
     BUILD_REPOSITORY_URI:
@@ -89,9 +90,9 @@ function testAzureEnv() {
   //   'https://github.com/happo/happo-view/commit/abcdef',
   // );
   // assert.ok(result.message !== undefined);
-}
+});
 
-function testTagMatchingEnv() {
+it('resolves the tag matching environment', () => {
   const azureEnv = {
     BUILD_SOURCEVERSION: '25826448f15ebcb939804ca769a00ee1df08e10d',
     BUILD_REPOSITORY_URI:
@@ -110,9 +111,9 @@ function testTagMatchingEnv() {
 
   assert.equal(result.afterSha, '25826448f15ebcb939804ca769a00ee1df08e10d');
   assert.equal(result.beforeSha, '25826448f15ebcb939804ca769a00ee1df08e10d');
-}
+});
 
-function testGithubActionsEnvironment() {
+it('resolves the GitHub Actions environment', () => {
   const githubEnv = {
     GITHUB_SHA: 'ccddffddccffdd',
     GITHUB_EVENT_PATH: path.resolve(__dirname, 'github_pull_request_event.json'),
@@ -163,9 +164,9 @@ function testGithubActionsEnvironment() {
     caughtError.message,
     'Failed to load GitHub event from the GITHUB_EVENT_PATH environment variable: "non-existing-path"',
   );
-}
+});
 
-function testGithubMergeGroupEnvironment() {
+it('resolves the GitHub merge group environment', () => {
   const githubEnv = {
     GITHUB_SHA: 'ccddffddccffdd',
     GITHUB_EVENT_PATH: path.resolve(__dirname, 'github_merge_group_event.json'),
@@ -178,9 +179,9 @@ function testGithubMergeGroupEnvironment() {
     'https://github.com/Codertocat/Hello-World/commit/ec26c3e57ca3a959ca5aad62de7213c562f8c821',
   );
   assert.ok(result.message !== undefined);
-}
+});
 
-function testTravisEnv() {
+it('resolves the Travis environment', () => {
   const travisEnv = {
     HAPPO_GITHUB_BASE: 'http://git.hub',
     TRAVIS_REPO_SLUG: 'owner/repo',
@@ -226,9 +227,9 @@ bdac2595db20ad2a6bf335b59510aa771125526a
   );
   assert.ok(result.message !== undefined);
   */
-}
+});
 
-function testHappoEnv() {
+it('resolves the happo environment', () => {
   const happoEnv = {
     HAPPO_CURRENT_SHA: 'bdac2595db20ad2a6bf335b59510aa771125526a',
     HAPPO_PREVIOUS_SHA: 'hhhggg',
@@ -267,17 +268,4 @@ function testHappoEnv() {
   assert.equal(result.afterSha, 'bdac2595db20ad2a6bf335b59510aa771125526a');
   assert.equal(result.link, 'link://link');
   assert.ok(result.message !== undefined);
-}
-
-function runTest() {
-  testGithubActionsEnvironment();
-  testGithubMergeGroupEnvironment();
-  testDevEnv();
-  testCircleCIEnv();
-  testTravisEnv();
-  testAzureEnv();
-  testHappoEnv();
-  testTagMatchingEnv();
-}
-runTest();
-console.log('All tests passed');
+});
