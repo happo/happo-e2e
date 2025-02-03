@@ -7,8 +7,6 @@ const mime = require('mime-types');
 const makeAbsolute = require('./makeAbsolute');
 const proxiedFetch = require('./fetch');
 
-const { HAPPO_DOWNLOAD_ALL, HAPPO_DEBUG } = process.env;
-
 const FILE_CREATION_DATE = new Date('Fri March 20 2020 13:44:55 GMT+0100 (CET)');
 
 function stripQueryParams(url) {
@@ -41,6 +39,8 @@ function getFileSuffixFromMimeType(mimeType = '') {
 }
 
 module.exports = function createAssetPackage(urls) {
+  const { HAPPO_DOWNLOAD_ALL, HAPPO_DEBUG } = process.env;
+
   if (HAPPO_DEBUG) {
     console.log(`[HAPPO] Creating asset package from urls`, urls);
   }
