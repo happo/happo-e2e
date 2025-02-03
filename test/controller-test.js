@@ -17,7 +17,15 @@ const mockHappoConfig = {
 
 const mockHappoConfigPath = path.join(__dirname, '..', '.happo.js');
 
+let originalEnv = {
+  HAPPO_ENABLED: process.env.HAPPO_ENABLED,
+  HAPPO_E2E_PORT: process.env.HAPPO_E2E_PORT,
+};
+
 before(() => {
+  process.env.HAPPO_ENABLED = true;
+  process.env.HAPPO_E2E_PORT = 3000;
+
   // Create a mock happo.js file
   fs.writeFileSync(
     mockHappoConfigPath,
@@ -26,6 +34,10 @@ before(() => {
 });
 
 after(() => {
+  for (const [key, value] of Object.entries(originalEnv)) {
+    process.env[key] = value;
+  }
+
   // Clean up the mock config
   fs.unlinkSync(mockHappoConfigPath);
 });
