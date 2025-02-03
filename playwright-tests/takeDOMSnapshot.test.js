@@ -63,11 +63,11 @@ test('style collection', async ({ page }) => {
   });
 
   expect(snapshot.cssBlocks.length).toBe(2);
-  expect(snapshot.cssBlocks[0].content).toMatch(/font-weight: 400;/);
-  expect(snapshot.cssBlocks[0].content).toMatch(/font: 400 1rem/);
-  expect(snapshot.cssBlocks[0].content).toMatch(/font: var\(--font\)/);
+  expect(snapshot.cssBlocks[0].content).toMatch(/--my-custom-font: 400 1rem/);
+  expect(snapshot.cssBlocks[0].content).toMatch(/--my-custom-font-weight: 400;/);
+  expect(snapshot.cssBlocks[0].content).toMatch(/font: var\(--my-custom-font\)/);
   expect(snapshot.cssBlocks[0].content).toMatch(
-    /font-weight: var\(--font-weight\);/,
+    /font-weight: var\(--my-custom-font-weight\);/,
   );
 
   expect(snapshot.cssBlocks[1].content).toMatch(/color: yellow;/);
@@ -243,8 +243,12 @@ test('constructed styles', async ({ page }) => {
 
     expect(snapshot.html).toMatch(/<p>world<\/p>/s);
     expect(snapshot.cssBlocks.length).toBe(2);
-    expect(snapshot.cssBlocks[0].content).toEqual('p { color: blue; }');
-    expect(snapshot.cssBlocks[1].content).toEqual('p { color: red; }');
+    expect(snapshot.cssBlocks[0].content.replace(/\s+/g, ' ').trim()).toEqual(
+      'p { color: blue; }',
+    );
+    expect(snapshot.cssBlocks[1].content.replace(/\s+/g, ' ')).toEqual(
+      'p { color: red; }',
+    );
   }
 
   // Take another snapshot to make sure that the styles are not duplicated.
@@ -255,7 +259,11 @@ test('constructed styles', async ({ page }) => {
 
     expect(snapshot.html).toMatch(/<h1>Hello<\/h1>/s);
     expect(snapshot.cssBlocks.length).toBe(2);
-    expect(snapshot.cssBlocks[0].content).toEqual('p { color: blue; }');
-    expect(snapshot.cssBlocks[1].content).toEqual('p { color: red; }');
+    expect(snapshot.cssBlocks[0].content.replace(/\s+/g, ' ').trim()).toEqual(
+      'p { color: blue; }',
+    );
+    expect(snapshot.cssBlocks[1].content.replace(/\s+/g, ' ')).toEqual(
+      'p { color: red; }',
+    );
   }
 });
