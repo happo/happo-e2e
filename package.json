@@ -3,6 +3,9 @@
   "version": "3.3.3",
   "description": "Helpers for e2e integrations with Happo",
   "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
   "repository": "git@github.com:happo/happo-e2e.git",
   "author": "Henric Trotzig <henric.trotzig@happo.io>",
   "license": "MIT",
