@@ -1,16 +1,15 @@
-const { describe, it } = require('node:test');
+const { describe, it, beforeEach, afterEach } = require('node:test');
+const http = require('http');
 const assert = require('assert');
-const fs = require('fs');
+
+const handler = require('serve-handler');
 
 const createAssetPackage = require('../src/createAssetPackage');
 
-const { SAVE_PACKAGE } = process.env;
+let server;
 
-async function wrap(func) {
-  const handler = require('serve-handler');
-  const http = require('http');
-
-  const server = http.createServer((request, response) => {
+beforeEach(async () => {
+  server = http.createServer((request, response) => {
     return handler(request, response, { public: 'test-fixtures' });
   });
 
@@ -20,38 +19,31 @@ async function wrap(func) {
       resolve();
     });
   });
+});
 
-  try {
-    const pkg = await func();
-    if (SAVE_PACKAGE) {
-      fs.writeFileSync('test-package.zip', pkg.buffer);
-    }
-  } finally {
-    await new Promise((resolve) => {
-      server.close(resolve);
-    });
-  }
-}
+afterEach(async () => {
+  await new Promise((resolve) => {
+    server.close(resolve);
+  });
+});
 
 describe('createAssetPackage', () => {
   it('creates an asset package', async () => {
-    await wrap(async () => {
-      const pkg = await createAssetPackage([
-        {
-          url: '/sub%20folder/countries-bg.jpeg',
-          baseUrl: 'http://localhost:3412',
-        },
-        {
-          url: 'http://localhost:3412/sub%20folder/countries-bg.jpeg',
-          baseUrl: 'http://localhost:3412',
-        },
-        {
-          url: 'http://localhost:3412/foo.html',
-          baseUrl: 'http://localhost:3412',
-        },
-      ]);
-      assert.equal(pkg.hash, '898862aad00d429b73f57256332a6ee1');
-      return pkg;
-    });
+    const pkg = await createAssetPackage([
+      {
+        url: '/sub%20folder/countries-bg.jpeg',
+        baseUrl: 'http://localhost:3412',
+      },
+      {
+        url: 'http://localhost:3412/sub%20folder/countries-bg.jpeg',
+        baseUrl: 'http://localhost:3412',
+      },
+      {
+        url: 'http://localhost:3412/foo.html',
+        baseUrl: 'http://localhost:3412',
+      },
+    ]);
+
+    assert.equal(pkg.hash, '898862aad00d429b73f57256332a6ee1');
   });
 });
