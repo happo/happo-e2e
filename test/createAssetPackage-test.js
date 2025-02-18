@@ -45,13 +45,18 @@ describe('createAssetPackage', () => {
       },
     ]);
 
-    assert.equal(pkg.hash, '898862aad00d429b73f57256332a6ee1');
+    assert.equal(pkg.hash, '8cdd63709442c4f37034425715630055');
 
     const zip = new AdmZip(pkg.buffer);
     const entries = zip.getEntries();
     assert.equal(entries.length, 3);
-    assert.equal(entries[0].name, 'countries-bg.jpeg');
-    assert.equal(entries[1].name, '8f037ef4cc4efb6ab6df9cc5d88f7898.jpeg');
-    assert.equal(entries[2].name, 'a0f415163499472aab9e93339b832d12.html');
+    assert.deepEqual(
+      entries.map((e) => e.name),
+      [
+        '8f037ef4cc4efb6ab6df9cc5d88f7898.jpeg',
+        'a0f415163499472aab9e93339b832d12.html',
+        'countries-bg.jpeg',
+      ],
+    );
   });
 });
