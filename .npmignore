@@ -10,3 +10,4 @@ run-tests.sh
 test
 test-fixtures
 test-package.zip
+test-results
