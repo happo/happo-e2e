@@ -4,13 +4,12 @@ const fs = require('fs');
 const nodeFetch = require('node-fetch');
 const imageSize = require('image-size');
 const pAll = require('p-all');
-
 const { RemoteBrowserTarget } = require('happo.io');
-const createAssetPackage = require('./src/createAssetPackage');
-const findCSSAssetUrls = require('./src/findCSSAssetUrls');
-
+const uploadAssets = require('happo.io/build/uploadAssets').default;
 const makeRequest = require('happo.io/build/makeRequest').default;
 
+const createAssetPackage = require('./src/createAssetPackage');
+const findCSSAssetUrls = require('./src/findCSSAssetUrls');
 const proxiedFetch = require('./src/fetch');
 const loadHappoConfig = require('./src/loadHappoConfig');
 const makeAbsolute = require('./src/makeAbsolute');
@@ -120,56 +119,16 @@ Docs:
   }
 
   async uploadAssetsIfNeeded({ buffer, hash }) {
-    if (this.happoDebug) {
-      console.log(`[HAPPO] Checking if we need to upload assets`);
-    }
+    const assetsPath = await uploadAssets(buffer, {
+      hash,
+      endpoint: this.happoConfig.endpoint,
+      apiKey: this.happoConfig.apiKey,
+      apiSecret: this.happoConfig.apiSecret,
+      logger: console,
+      project: this.happoConfig.project,
+    });
 
-    try {
-      // Check if the assets already exist. If so, we don't have to upload them.
-      const assetsDataRes = await makeRequest(
-        {
-          url: `${this.happoConfig.endpoint}/api/snap-requests/assets-data/${hash}`,
-          method: 'GET',
-          json: true,
-        },
-        { ...this.happoConfig },
-      );
-      if (this.happoDebug) {
-        console.log(
-          `[HAPPO] Reusing existing assets at ${assetsDataRes.path} (previously uploaded on ${assetsDataRes.uploadedAt})`,
-        );
-      }
-      return assetsDataRes.path;
-    } catch (e) {
-      if (e.statusCode !== 404) {
-        throw e;
-      }
-    }
-
-    if (this.happoDebug) {
-      console.log(`[HAPPO] Uploading assets package`);
-    }
-    const assetsRes = await makeRequest(
-      {
-        url: `${this.happoConfig.endpoint}/api/snap-requests/assets/${hash}`,
-        method: 'POST',
-        json: true,
-        formData: {
-          payload: {
-            options: {
-              filename: 'payload.zip',
-              contentType: 'application/zip',
-            },
-            value: buffer,
-          },
-        },
-      },
-      { ...this.happoConfig, retryCount: 3 },
-    );
-    if (this.happoDebug) {
-      console.log('[HAPPO] Done uploading assets package, got', assetsRes);
-    }
-    return assetsRes.path;
+    return assetsPath;
   }
 
   async finish() {
