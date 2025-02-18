@@ -3,6 +3,7 @@ const http = require('http');
 const assert = require('assert');
 
 const handler = require('serve-handler');
+const AdmZip = require('adm-zip');
 
 const createAssetPackage = require('../src/createAssetPackage');
 
@@ -45,5 +46,12 @@ describe('createAssetPackage', () => {
     ]);
 
     assert.equal(pkg.hash, '898862aad00d429b73f57256332a6ee1');
+
+    const zip = new AdmZip(pkg.buffer);
+    const entries = zip.getEntries();
+    assert.equal(entries.length, 3);
+    assert.equal(entries[0].name, 'countries-bg.jpeg');
+    assert.equal(entries[1].name, '8f037ef4cc4efb6ab6df9cc5d88f7898.jpeg');
+    assert.equal(entries[2].name, 'a0f415163499472aab9e93339b832d12.html');
   });
 });
