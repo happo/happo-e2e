@@ -164,7 +164,7 @@ Docs:
           },
         },
       },
-      { ...this.happoConfig, maxTries: 3 },
+      { ...this.happoConfig, retryCount: 3 },
     );
     if (this.happoDebug) {
       console.log('[HAPPO] Done uploading assets package, got', assetsRes);

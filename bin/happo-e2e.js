@@ -54,7 +54,7 @@ async function postAsyncReport({ nonce, afterSha, requestIds, link, message }) {
         message,
       },
     },
-    { ...happoConfig, maxTries: 3 },
+    { ...happoConfig, retryCount: 3 },
   );
 }
 
