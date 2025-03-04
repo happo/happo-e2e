@@ -8,6 +8,7 @@ const yargs = require('yargs/yargs');
 
 const makeRequest = require('happo.io/build/makeRequest').default;
 const compareReports = require('happo.io/build/commands/compareReports').default;
+const postGithubComment = require('happo.io/src/postGithubComment').default;
 
 const loadHappoConfig = require('../src/loadHappoConfig');
 const resolveEnvironment = require('../src/resolveEnvironment');
@@ -127,13 +128,25 @@ async function finalizeAll(argv) {
   );
 
   if (beforeSha && beforeSha !== afterSha) {
-    await compareReports(beforeSha, afterSha, happoConfig, {
+    const compareResult = await compareReports(beforeSha, afterSha, happoConfig, {
       link,
       message,
       isAsync: true,
       notify,
       fallbackShas,
     });
+
+    if (link && process.env.HAPPO_GITHUB_USER_CREDENTIALS) {
+      // HAPPO_GITHUB_USER_CREDENTIALS is set which means that we should post
+      // a comment to the PR.
+      // https://docs.happo.io/docs/continuous-integration#posting-statuses-without-installing-the-happo-github-app
+      await postGithubComment({
+        link,
+        statusImageUrl: compareResult.statusImageUrl,
+        compareUrl: compareResult.compareUrl,
+        githubApiUrl: happoConfig.githubApiUrl,
+      });
+    }
   }
 }
 
@@ -171,15 +184,33 @@ async function finalizeHappoReport() {
       },
       { ...happoConfig, maxTries: 3 },
     );
+
     if (beforeSha !== afterSha && !nonce) {
-      await compareReports(beforeSha, afterSha, happoConfig, {
+      // If the SHAs match, there is no comparison to make. This is likely
+      // running on the default branch and we are done at this point.
+      // If there is a nonce, the comparison will happen when the finalize
+      // command is called.
+      const compareResult = await compareReports(beforeSha, afterSha, happoConfig, {
         link,
         message,
         isAsync: true,
         notify,
         fallbackShas,
       });
+
+      if (link && process.env.HAPPO_GITHUB_USER_CREDENTIALS) {
+        // HAPPO_GITHUB_USER_CREDENTIALS is set which means that we should post
+        // a comment to the PR.
+        // https://docs.happo.io/docs/continuous-integration#posting-statuses-without-installing-the-happo-github-app
+        await postGithubComment({
+          link,
+          statusImageUrl: compareResult.statusImageUrl,
+          compareUrl: compareResult.compareUrl,
+          githubApiUrl: happoConfig.githubApiUrl,
+        });
+      }
     }
+
     console.log(`[HAPPO] ${jobResult.url}`);
   } else {
     console.log(`[HAPPO] ${reportResult.url}`);
