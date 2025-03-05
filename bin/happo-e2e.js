@@ -8,7 +8,7 @@ const yargs = require('yargs/yargs');
 
 const makeRequest = require('happo.io/build/makeRequest').default;
 const compareReports = require('happo.io/build/commands/compareReports').default;
-const postGithubComment = require('happo.io/src/postGithubComment').default;
+const postGithubComment = require('happo.io/build/postGithubComment').default;
 
 const loadHappoConfig = require('../src/loadHappoConfig');
 const resolveEnvironment = require('../src/resolveEnvironment');
