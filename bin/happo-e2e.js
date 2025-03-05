@@ -270,7 +270,17 @@ async function init(argv) {
   });
 }
 
-init(hideBin(process.argv)).catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+async function main(argv) {
+  try {
+    await init(hideBin(argv));
+  } catch (e) {
+    console.error(e);
+    process.exitCode = 1;
+  }
+}
+
+if (require.main === module) {
+  main(process.argv);
+}
+
+module.exports = main;
