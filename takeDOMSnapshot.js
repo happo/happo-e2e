@@ -2,9 +2,13 @@ const md5 = require('crypto-js/md5');
 const parseSrcset = require('parse-srcset');
 
 const findCSSAssetUrls = require('./src/findCSSAssetUrls');
+const applyConstructedStylesPatch = require('./src/applyConstructedStylesPatch');
 
 const CSS_ELEMENTS_SELECTOR = 'style,link[rel="stylesheet"][href]';
 const COMMENT_PATTERN = /^\/\*.+\*\/$/;
+
+applyConstructedStylesPatch();
+const recordedCSSSymbol = applyConstructedStylesPatch.recordedCSSSymbol;
 
 function getContentFromStyleSheet(element) {
   let lines;
@@ -12,6 +16,8 @@ function getContentFromStyleSheet(element) {
   if (element.textContent) {
     // Handle <style> elements with direct textContent
     lines = element.textContent.split('\n').map((line) => line.trim());
+  } else if (element[recordedCSSSymbol]) {
+    lines = element[recordedCSSSymbol];
   } else if (element.sheet?.cssRules) {
     // Handle <style> or <link> elements that have a sheet property
     lines = Array.from(element.sheet.cssRules).map((rule) => rule.cssText);

@@ -242,12 +242,24 @@ test('constructed styles', async ({ page }) => {
     });
 
     expect(snapshot.html).toMatch(/<p>world<\/p>/s);
-    expect(snapshot.cssBlocks.length).toBe(2);
+    expect(snapshot.html).toContain(
+      'CSSStyleSheet.prototype.deleteRule does not work with Happo',
+    );
+    expect(snapshot.cssBlocks.length).toBe(4);
     expect(snapshot.cssBlocks[0].content.replace(/\s+/g, ' ').trim()).toEqual(
       'p { color: blue; }',
     );
     expect(snapshot.cssBlocks[1].content.replace(/\s+/g, ' ')).toEqual(
-      'p { color: red; }',
+      'b { color: green; } :root { --my-custom-font: 400 1rem / 1.5rem Roboto; --my-custom-font-weight: 400; } p { font: var(--my-custom-font); font-weight: var(--my-custom-font-weight); }',
+    );
+    expect(snapshot.cssBlocks[2].content.replace(/\s+/g, ' ')).toEqual(
+      'b { color: violet; }',
+    );
+    expect(snapshot.cssBlocks[3].content.replace(/\s+/g, ' ')).toEqual(
+      ':root { --my-custom-font: 600 1em / 1em Comic; --my-custom-font-weight: 400; } p { font: var(--my-custom-font); font-weight: var(--my-custom-font-weight); }',
+    );
+    expect(snapshot.cssBlocks.map((block) => block.content).join(' ')).not.toMatch(
+      /color: ?red/,
     );
   }
 
@@ -258,12 +270,21 @@ test('constructed styles', async ({ page }) => {
     });
 
     expect(snapshot.html).toMatch(/<h1>Hello<\/h1>/s);
-    expect(snapshot.cssBlocks.length).toBe(2);
+    expect(snapshot.cssBlocks.length).toBe(4);
     expect(snapshot.cssBlocks[0].content.replace(/\s+/g, ' ').trim()).toEqual(
       'p { color: blue; }',
     );
     expect(snapshot.cssBlocks[1].content.replace(/\s+/g, ' ')).toEqual(
-      'p { color: red; }',
+      'b { color: green; } :root { --my-custom-font: 400 1rem / 1.5rem Roboto; --my-custom-font-weight: 400; } p { font: var(--my-custom-font); font-weight: var(--my-custom-font-weight); }',
+    );
+    expect(snapshot.cssBlocks[2].content.replace(/\s+/g, ' ')).toEqual(
+      'b { color: violet; }',
+    );
+    expect(snapshot.cssBlocks[3].content.replace(/\s+/g, ' ')).toEqual(
+      ':root { --my-custom-font: 600 1em / 1em Comic; --my-custom-font-weight: 400; } p { font: var(--my-custom-font); font-weight: var(--my-custom-font-weight); }',
+    );
+    expect(snapshot.cssBlocks.map((block) => block.content).join(' ')).not.toMatch(
+      /color: ?red/,
     );
   }
 });
