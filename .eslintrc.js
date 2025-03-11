@@ -15,6 +15,7 @@ module.exports = {
     cy: 'readonly',
     describe: 'readonly',
     it: 'readonly',
+    globalThis: 'readonly',
   },
   ignorePatterns: ['pages/'],
   parserOptions: {

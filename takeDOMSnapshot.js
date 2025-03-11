@@ -393,10 +393,13 @@ function takeDOMSnapshot({
     bodyElementAttrs,
   };
 }
+
 takeDOMSnapshot.init = function noop() {
   // There used to be some code in here to set the baseUrl of all link elements.
   // But that's no longer needed (because Node.baseURI exists). We're keeping
   // the function around here however to make sure we stay backwards compatible.
 };
+
+takeDOMSnapshot.applyConstructedStylesPatch = applyConstructedStylesPatch;
 
 module.exports = takeDOMSnapshot;
