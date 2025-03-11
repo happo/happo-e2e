@@ -1,5 +1,6 @@
 const recordedCSSSymbol = Symbol('recordedCssRules');
 const hasBrokenIndexesSymbol = Symbol('hasBrokenIndexes');
+const isInstalledSymbol = Symbol('isInstalled');
 
 // Helper to ensure our custom recorded array exists on the sheet.
 function ensureRecord(sheet) {
@@ -39,14 +40,20 @@ function displayError(message) {
   });
 }
 
-module.exports = function applyConstructedStylesPatch() {
-  if (typeof CSSStyleSheet === 'undefined') {
+module.exports = function applyConstructedStylesPatch(win = globalThis) {
+  if (typeof win.CSSStyleSheet === 'undefined') {
     console.error('CSSStyleSheet is not supported in this browser');
     return;
   }
+
+  if (win.CSSStyleSheet[isInstalledSymbol]) {
+    return;
+  }
+  win.CSSStyleSheet[isInstalledSymbol] = true;
+
   // Patch insertRule to record each rule string.
-  const originalInsertRule = CSSStyleSheet.prototype.insertRule;
-  CSSStyleSheet.prototype.insertRule = function (rule, index = 0) {
+  const originalInsertRule = win.CSSStyleSheet.prototype.insertRule;
+  win.CSSStyleSheet.prototype.insertRule = function (rule, index = 0) {
     ensureRecord(this);
 
     if (this[hasBrokenIndexesSymbol] && index) {
@@ -65,8 +72,8 @@ module.exports = function applyConstructedStylesPatch() {
     return originalInsertRule.call(this, rule, index);
   };
 
-  const originalAddRule = CSSStyleSheet.prototype.addRule;
-  CSSStyleSheet.prototype.addRule = function (selector, styleBlock, index) {
+  const originalAddRule = win.CSSStyleSheet.prototype.addRule;
+  win.CSSStyleSheet.prototype.addRule = function (selector, styleBlock, index) {
     ensureRecord(this);
     if (this[hasBrokenIndexesSymbol] && index) {
       displayError(
@@ -85,8 +92,8 @@ module.exports = function applyConstructedStylesPatch() {
   };
 
   // Patch deleteRule so that removed rules are taken out of our record.
-  const originalDeleteRule = CSSStyleSheet.prototype.deleteRule;
-  CSSStyleSheet.prototype.deleteRule = function (index) {
+  const originalDeleteRule = win.CSSStyleSheet.prototype.deleteRule;
+  win.CSSStyleSheet.prototype.deleteRule = function (index) {
     ensureRecord(this);
     if (this[hasBrokenIndexesSymbol]) {
       displayError(
@@ -98,8 +105,8 @@ module.exports = function applyConstructedStylesPatch() {
     return originalDeleteRule.call(this, index);
   };
 
-  const originalRemoveRule = CSSStyleSheet.prototype.removeRule;
-  CSSStyleSheet.prototype.removeRule = function (index) {
+  const originalRemoveRule = win.CSSStyleSheet.prototype.removeRule;
+  win.CSSStyleSheet.prototype.removeRule = function (index) {
     ensureRecord(this);
     if (this[hasBrokenIndexesSymbol]) {
       displayError(
@@ -112,16 +119,16 @@ module.exports = function applyConstructedStylesPatch() {
   };
 
   // Patch replaceSync to capture the new CSS text.
-  const originalReplaceSync = CSSStyleSheet.prototype.replaceSync;
-  CSSStyleSheet.prototype.replaceSync = function (text) {
+  const originalReplaceSync = win.CSSStyleSheet.prototype.replaceSync;
+  win.CSSStyleSheet.prototype.replaceSync = function (text) {
     this[recordedCSSSymbol] = text.split('\n').map((rule) => rule.trim());
     this[hasBrokenIndexesSymbol] = true;
     return originalReplaceSync.call(this, text);
   };
 
   // Patch replace (the asynchronous version) similarly.
-  const originalReplace = CSSStyleSheet.prototype.replace;
-  CSSStyleSheet.prototype.replace = function (text) {
+  const originalReplace = win.CSSStyleSheet.prototype.replace;
+  win.CSSStyleSheet.prototype.replace = function (text) {
     const sheet = this;
     return originalReplace.call(sheet, text).then(function (result) {
       sheet[recordedCSSSymbol] = text.split('\n').map((rule) => rule.trim());
