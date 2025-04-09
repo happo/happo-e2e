@@ -172,7 +172,9 @@ Docs:
     for (const url of uniqueUrls) {
       if (/^\/_external\//.test(url.name) && url.name !== url.url) {
         for (const block of globalCSS) {
-          block.css = block.css?.split(url.url).join(url.name);
+          block.css = block.css
+            ? block.css.split(url.url).join(url.name)
+            : undefined;
         }
         this.snapshots.forEach((snapshot) => {
           snapshot.html = snapshot.html.split(url.url).join(url.name);

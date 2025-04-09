@@ -18,7 +18,7 @@ function getContentFromStyleSheet(element) {
     lines = element.textContent.split('\n').map((line) => line.trim());
   } else if (element[recordedCSSSymbol]) {
     lines = element[recordedCSSSymbol];
-  } else if (element.sheet?.cssRules) {
+  } else if (element.sheet && element.sheet.cssRules) {
     // Handle <style> or <link> elements that have a sheet property
     lines = Array.from(element.sheet.cssRules).map((rule) => rule.cssText);
   } else if (element.cssRules) {
