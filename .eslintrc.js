@@ -24,5 +24,20 @@ module.exports = {
   },
   rules: {
     'no-use-before-define': 2,
+    'no-restricted-syntax': [
+      'error',
+      {
+        selector: 'ChainExpression',
+        message: 'Optional chaining (?.) is not supported in Webpack 4',
+      },
+      {
+        selector: 'LogicalExpression[operator="??"]',
+        message: 'Nullish coalescing operator (??) is not supported in Webpack 4',
+      },
+      {
+        selector: 'ClassProperty',
+        message: 'Class fields are not supported in Webpack 4',
+      },
+    ],
   },
 };
