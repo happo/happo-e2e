@@ -1,4 +1,3 @@
-const nodeFetch = require('node-fetch');
 const HttpsProxyAgent = require('https-proxy-agent');
 const asyncRetry = require('async-retry');
 
@@ -9,13 +8,13 @@ if (HTTP_PROXY) {
   fetchOptions.agent = new HttpsProxyAgent(HTTP_PROXY);
 }
 if (HAPPO_DEBUG) {
-  console.log(`[HAPPO] using the following node-fetch options`, fetchOptions);
+  console.log(`[HAPPO] using the following fetch options`, fetchOptions);
 }
 
-module.exports = async function fetch(url, { retryCount = 0 }) {
+module.exports = async function happoFetch(url, { retryCount = 0 }) {
   return asyncRetry(
     async (bail) => {
-      const response = await nodeFetch(url, fetchOptions);
+      const response = await fetch(url, fetchOptions);
 
       if (response.status >= 400 && response.status < 500) {
         bail(

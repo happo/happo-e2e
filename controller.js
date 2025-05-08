@@ -1,7 +1,6 @@
 const crypto = require('crypto');
 const fs = require('fs');
 
-const nodeFetch = require('node-fetch');
 const imageSize = require('image-size');
 const pAll = require('p-all');
 const { RemoteBrowserTarget } = require('happo.io');
@@ -351,7 +350,7 @@ Docs:
 
     if (HAPPO_E2E_PORT) {
       // We're running with `happo-cypress --`
-      const fetchRes = await nodeFetch(`http://localhost:${HAPPO_E2E_PORT}/`, {
+      const fetchRes = await fetch(`http://localhost:${HAPPO_E2E_PORT}/`, {
         method: 'POST',
         body: allRequestIds.join('\n'),
       });

@@ -1,4 +1,5 @@
 const crypto = require('crypto');
+const { Readable } = require('stream');
 
 const mime = require('mime-types');
 const deterministicArchive = require('happo.io/build/deterministicArchive').default;
@@ -104,7 +105,7 @@ module.exports = async function createAssetPackage(urls) {
 
           archiveContent.push({
             name,
-            content: fetchRes.body,
+            content: Readable.fromWeb(fetchRes.body),
           });
         } catch (e) {
           console.log(`[HAPPO] Failed to fetch url ${fetchUrl}`);
