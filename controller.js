@@ -61,6 +61,14 @@ async function downloadCSSContent(blocks) {
         );
       }
 
+      // Strip UTF-8 BOM character if present
+      if (text.charCodeAt(0) === 0xfeff) {
+        text = text.slice(1);
+        if (HAPPO_DEBUG) {
+          console.log(`[HAPPO] Stripped UTF-8 BOM from CSS file ${absUrl}`);
+        }
+      }
+
       if (!absUrl.startsWith(block.baseUrl)) {
         text = makeExternalUrlsAbsolute(text, absUrl);
       }
