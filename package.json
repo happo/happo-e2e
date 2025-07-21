@@ -46,7 +46,7 @@
     "image-size": "^1.0.1",
     "mime-types": "^2.1.35",
     "node-fetch": "^2.0.0",
-    "p-all": "^3.0.0",
+    "p-all": "^5.0.0",
     "parse-srcset": "^1.0.2",
     "yargs": "^17.7.2"
   }
