@@ -44,7 +44,7 @@
     "happo.io": "^12.0.0",
     "https-proxy-agent": "^7.0.6",
     "image-size": "^1.0.1",
-    "mime-types": "^2.1.35",
+    "mime-types": "^3.0.1",
     "node-fetch": "^2.0.0",
     "p-all": "^3.0.0",
     "parse-srcset": "^1.0.2",
