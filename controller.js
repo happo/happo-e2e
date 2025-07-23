@@ -47,7 +47,7 @@ async function downloadCSSContent(blocks) {
       let res;
       try {
         res = await proxiedFetch(absUrl, { retryCount: 5 });
-      } catch (e) {
+      } catch {
         console.warn(
           `[HAPPO] Failed to fetch CSS file from ${absUrl} (using ${block.href} with base URL ${block.baseUrl}). This might mean styles are missing in your Happo screenshots.`,
         );
