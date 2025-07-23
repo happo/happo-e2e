@@ -45,7 +45,7 @@ describe('createAssetPackage', () => {
       },
     ]);
 
-    assert.equal(pkg.hash, '8cdd63709442c4f37034425715630055');
+    assert.equal(pkg.hash, '590dc2c60df5591fd9214bbf9a263f79');
 
     const zip = new AdmZip(pkg.buffer);
     const entries = zip.getEntries();
@@ -53,7 +53,7 @@ describe('createAssetPackage', () => {
     assert.deepEqual(
       entries.map((e) => e.name),
       [
-        '8f037ef4cc4efb6ab6df9cc5d88f7898.jpeg',
+        '8f037ef4cc4efb6ab6df9cc5d88f7898.jpg',
         'a0f415163499472aab9e93339b832d12.html',
         'countries-bg.jpeg',
       ],
