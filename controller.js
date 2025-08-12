@@ -17,6 +17,15 @@ const makeExternalUrlsAbsolute = require('./src/makeExternalUrlsAbsolute');
 const resolveEnvironment = require('./src/resolveEnvironment');
 const convertBase64FileToReal = require('./src/convertBase64FileToReal');
 
+function dedupeSnapshots(snapshots) {
+  const allIndexed = {};
+  for (const snapshot of snapshots) {
+    const key = [snapshot.component, snapshot.variant].join('-_|_-');
+    allIndexed[key] = snapshot;
+  }
+  return Object.values(allIndexed);
+}
+
 function getUniqueUrls(urls) {
   const seenKeys = new Set();
   const result = [];
@@ -89,7 +98,6 @@ class Controller {
     this.snapshotAssetUrls = [];
     this.localSnapshots = [];
     this.localSnapshotImages = {};
-    this.knownComponentVariants = {};
     this.happoDebug = false;
 
     const { HAPPO_E2E_PORT, HAPPO_ENABLED, HAPPO_DEBUG } = process.env;
@@ -158,7 +166,7 @@ Docs:
       }
       return null;
     }
-    this.dedupeSnapshots();
+    this.snapshots = dedupeSnapshots(this.snapshots);
     await downloadCSSContent(this.allCssBlocks);
     const allUrls = [...this.snapshotAssetUrls];
     this.allCssBlocks.forEach((block) => {
@@ -275,7 +283,7 @@ Docs:
 
   async registerLocalSnapshot({
     component,
-    variant: rawVariant,
+    variant,
     targets,
     target,
     width,
@@ -285,8 +293,6 @@ Docs:
     path,
     buffer,
   }) {
-    const variant = this.dedupeVariant(component, rawVariant);
-
     if (!width && !height && buffer) {
       const dimensions = imageSize(buffer);
       width = dimensions.width;
@@ -376,18 +382,12 @@ Docs:
           url: `${this.happoConfig.endpoint}/api/async-reports/${afterSha}`,
           method: 'POST',
           json: true,
-          body: {
-            requestIds: allRequestIds,
-            project: this.happoConfig.project,
-          },
+          body: { requestIds: allRequestIds, project: this.happoConfig.project },
         },
         { ...this.happoConfig, maxTries: 3 },
       );
       console.log(`[HAPPO] ${reportResult.url}`);
 
-      // Reset the component variants so that we can run the test again while
-      // cypress is still open.
-      this.knownComponentVariants = {};
       return null;
     }
   }
@@ -461,10 +461,7 @@ Docs:
         json: true,
         formData: {
           file: {
-            options: {
-              filename: 'image.png',
-              contentType: 'image/png',
-            },
+            options: { filename: 'image.png', contentType: 'image/png' },
             value: buffer,
           },
         },
@@ -483,31 +480,11 @@ Docs:
         url: `${this.happoConfig.endpoint}/api/snap-requests/with-results`,
         method: 'POST',
         json: true,
-        body: {
-          snaps: this.localSnapshots,
-        },
+        body: { snaps: dedupeSnapshots(this.localSnapshots) },
       },
       { ...this.happoConfig, maxTries: 3 },
     );
     return reportResult.requestId;
-  }
-
-  dedupeVariant(component, variant) {
-    this.knownComponentVariants[component] =
-      this.knownComponentVariants[component] || {};
-    const comp = this.knownComponentVariants[component];
-    comp[variant] = comp[variant] || 0;
-    comp[variant]++;
-    if (comp[variant] === 1) {
-      return variant;
-    }
-    return `${variant}-${comp[variant]}`;
-  }
-
-  dedupeSnapshots() {
-    for (const snapshot of this.snapshots) {
-      snapshot.variant = this.dedupeVariant(snapshot.component, snapshot.variant);
-    }
   }
 
   async registerBase64ImageChunk({ base64Chunk, src, isFirst, isLast }) {

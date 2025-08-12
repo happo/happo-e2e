@@ -26,12 +26,7 @@ before(() => {
     res.setHeader('Content-Type', 'application/json');
 
     if (req.url.startsWith('/api/snap-requests/assets-data/')) {
-      res.end(
-        JSON.stringify({
-          path: '/path/to/asset',
-          uploadedAt: '2021-01-01',
-        }),
-      );
+      res.end(JSON.stringify({ path: '/path/to/asset', uploadedAt: '2021-01-01' }));
       return;
     }
 
@@ -106,13 +101,69 @@ describe('Controller', () => {
       },
     ]);
     assert.deepStrictEqual(controller.snapshotAssetUrls, [
-      {
-        url: 'http://example.com/asset.jpg',
-      },
+      { url: 'http://example.com/asset.jpg' },
     ]);
     assert.deepStrictEqual(controller.allCssBlocks, []);
 
     await controller.finish();
+  });
+
+  it('deduplicates snapshots', async () => {
+    const controller = new Controller();
+    await controller.init();
+
+    await controller.registerSnapshot({
+      html: '<div>Test</div>',
+      component: 'Button',
+      variant: 'primary',
+      cssBlocks: [],
+      assetUrls: [],
+    });
+
+    // This is a different snapshot than the first one:
+    await controller.registerSnapshot({
+      html: '<div>Unrelated</div>',
+      component: 'Foo',
+      variant: 'bar',
+      cssBlocks: [],
+      assetUrls: [],
+    });
+
+    // This is a copy of the first snapshot:
+    await controller.registerSnapshot({
+      html: '<div>Test</div>',
+      component: 'Button',
+      variant: 'primary',
+      cssBlocks: [],
+      assetUrls: [],
+    });
+
+    await controller.finish();
+
+    assert.equal(controller.snapshots.length, 2);
+
+    assert.deepStrictEqual(controller.snapshots, [
+      {
+        bodyElementAttrs: undefined,
+        component: 'Button',
+        html: '<div>Test</div>',
+        htmlElementAttrs: undefined,
+        stylesheets: [],
+        targets: ['chrome'],
+        timestamp: undefined,
+        variant: 'primary',
+      },
+      {
+        bodyElementAttrs: undefined,
+        component: 'Foo',
+        html: '<div>Unrelated</div>',
+        htmlElementAttrs: undefined,
+        stylesheets: [],
+        targets: ['chrome'],
+        timestamp: undefined,
+        variant: 'bar',
+      },
+    ]);
   });
 
   // https://github.com/happo/happo-e2e/issues/58
@@ -158,10 +209,7 @@ describe('Controller', () => {
       },
     ]);
     assert.deepStrictEqual(controller.allCssBlocks, [
-      {
-        key: 'http://example.com/sheet.css',
-        href: 'http://example.com/sheet.css',
-      },
+      { key: 'http://example.com/sheet.css', href: 'http://example.com/sheet.css' },
     ]);
 
     await controller.finish();
