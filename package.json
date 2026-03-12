@@ -45,7 +45,7 @@
     "base64-stream": "^1.0.0",
     "crypto-js": "^4.1.1",
     "happo.io": "^13.0.0",
-    "https-proxy-agent": "^7.0.6",
+    "https-proxy-agent": "^8.0.0",
     "image-size": "^2.0.2",
     "mime-types": "^3.0.1",
     "node-fetch": "^2.0.0",
